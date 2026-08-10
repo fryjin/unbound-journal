@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.7 — History / Undo / Redo**.
+Current milestone: **P0.8 — Persistence / Autosave**.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -33,7 +33,7 @@ Simplified Chinese is not currently a product locale.
 - Vite
 - Konva / react-konva
 - i18next / react-i18next
-- IndexedDB in later P0 steps
+- IndexedDB local autosave / recovery
 - Cloudflare Workers + D1 + R2 in later cloud phases
 
 ## Local setup
@@ -142,17 +142,27 @@ P0.6 closes the first paper-material editing loop:
 A formal PaperLayer manager is intentionally deferred; the P0.6 UI targets the top layer while the underlying replacement helper supports any PaperLayer.
 
 
-## P0.7 history / undo / redo
+## P0.7 history
 
-P0.7 makes the Paper Engine editing loop reversible:
+P0.7 makes paper editing reversible through renderer-independent Commands:
 
-- every completed Brush / Erase gesture becomes one history command
-- Fill and Replace are reversible commands
-- PaperLayer creation is undone as a complete layer operation
-- Clear is reversible for development QA
-- history stores pure PaperLayer document state, never Canvas/Konva/image snapshots
-- runtime assets stay in a separate cache keyed by immutable `paperVersionId`
-- Undo/Redo buttons are available on mobile; desktop QA also supports standard keyboard shortcuts
-- a new edit after Undo invalidates the Redo branch
+- Paint / Erase / Fill / Replace / AddLayer / Clear are undoable
+- one completed gesture equals one History entry
+- Redo branches are invalidated after a new edit
+- runtime paper assets stay outside the History state
+- desktop Undo / Redo shortcuts are available for QA
 
-Cloudflare remains intentionally undeployed at this milestone; the current Paper Engine does not require remote infrastructure yet.
+## P0.8 persistence / autosave
+
+P0.8 persists the paper document locally without adding cloud infrastructure:
+
+- versioned `PaperPageDocumentV1` schema
+- native IndexedDB storage under `packages/storage`
+- 450 ms debounced autosave after committed History changes
+- serialized writes prevent stale saves from overwriting newer work
+- reload restores `PaperLayer[]` as a new History baseline
+- pinned `paperVersionId` values rehydrate their runtime manifests / textures after restore
+- invalid or unavailable local storage degrades without crashing the editor
+- Undo/Redo stacks, viewport state, renderer caches, and active gestures are not persisted
+
+Cloudflare remains intentionally undeployed during P0.8. See `docs/EXECUTION_ROADMAP.md` for the authoritative executed milestone numbering.

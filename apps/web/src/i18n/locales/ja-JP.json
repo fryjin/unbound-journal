@@ -58,6 +58,15 @@
     "undo": "元に戻す",
     "redo": "やり直す",
     "undoAria": "直前のペーパー編集を元に戻す",
-    "redoAria": "元に戻したペーパー編集をやり直す"
+    "redoAria": "元に戻したペーパー編集をやり直す",
+    "persistenceLoading": "ローカル下書きを読み込み中…",
+    "persistenceReady": "ローカル自動保存の準備完了",
+    "persistenceRestored": "ローカル下書きを復元しました",
+    "persistenceScheduled": "ローカル保存を待機中…",
+    "persistenceSaving": "ローカルに保存中…",
+    "persistenceSaved": "ローカルに保存済み",
+    "persistenceError": "ローカル保存に失敗しました",
+    "persistenceRecoveryError": "ローカル下書きを復元できませんでした",
+    "persistenceUnavailable": "ローカル自動保存を利用できません"
   }
 }

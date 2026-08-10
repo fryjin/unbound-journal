@@ -3,7 +3,7 @@
 ## Current
 
 - Project codename / repository name: `unbound-journal`
-- Milestone: `P0.7 — History / Undo / Redo`
+- Milestone: `P0.8 — Persistence / Autosave`
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
 
@@ -116,6 +116,21 @@
 - Desktop `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`, and Windows `Ctrl+Y` QA shortcuts
 - Tier-1 + Tier-2 localized History controls
 
+## Completed in P0.8
+
+- Versioned renderer-independent `PaperPageDocumentV1` persistence envelope
+- Strict persisted-document validation / future migration boundary
+- Native IndexedDB adapter in `packages/storage`
+- 450 ms debounced autosave with serialized write ordering
+- Autosave only after committed History transitions, never pointer movement
+- Startup restore before editing is enabled
+- Restored document becomes a fresh History baseline
+- Runtime paper assets rehydrate from pinned `paperVersionId` values after reload
+- Best-effort pending-save flush on `pagehide` / hidden visibility state
+- IndexedDB unavailable / invalid document / save-error graceful fallback
+- Local save / restore status surfaced in all supported locales
+- Cloudflare remains deferred
+
 ## Deployment status
 
 - Cloudflare deployment: **not started / not required yet**
@@ -130,7 +145,7 @@ Future official or creator assets will enter through the same PaperRuntimeManife
 
 ## Environment limitation
 
-The original generation environment could not resolve all public npm packages through its configured registry. P0.7 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
+The original generation environment could not resolve all public npm packages through its configured registry. P0.8 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
 
 The dependency-free paper-pack validator remains available through:
 
@@ -140,10 +155,12 @@ npm run papers:validate
 
 ## Next
 
-`P0.8 — Persistence / Autosave`
+`P0.9 — Mobile QA / P0 Acceptance`
 
-1. Persist the current renderer-independent paper document locally in IndexedDB
-2. Debounce autosave after committed History actions, not pointer movement
-3. Restore the latest local document after reload/crash
-4. Introduce schema versioning/migration boundary without cloud sync yet
-5. Keep Cloudflare deployment deferred until remote infrastructure is actually required
+1. Run the full workspace install / typecheck / build in a normal npm environment
+2. Validate Paper Brush / Eraser / Fill / Replace / History / Persistence on iPhone Safari
+3. Validate the same flows on Android Chrome and Desktop Chrome
+4. Stress-test 5+ paper layers and longer mask histories
+5. Verify reload / recovery and IndexedDB fallback behavior on real devices
+6. Close P0 Paper Engine acceptance defects before expanding into Content Stack
+7. Decide whether a temporary Cloudflare preview URL is needed for physical-device QA; notify the user before any deployment work

@@ -537,3 +537,19 @@ button {
     margin-inline: auto;
   }
 }
+
+.persistence-status {
+  color: #7a746b;
+}
+
+.persistence-status--saved,
+.persistence-status--restored,
+.persistence-status--ready {
+  color: #5f735f;
+}
+
+.persistence-status--error,
+.persistence-status--recovery-error,
+.persistence-status--unavailable {
+  color: #9a5d4e;
+}

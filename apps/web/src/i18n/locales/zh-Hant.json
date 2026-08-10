@@ -58,6 +58,15 @@
     "undo": "復原",
     "redo": "重做",
     "undoAria": "復原上一個紙張編輯操作",
-    "redoAria": "重做上一個已復原的紙張編輯操作"
+    "redoAria": "重做上一個已復原的紙張編輯操作",
+    "persistenceLoading": "正在載入本機草稿…",
+    "persistenceReady": "本機自動儲存已就緒",
+    "persistenceRestored": "已還原本機草稿",
+    "persistenceScheduled": "等待本機儲存…",
+    "persistenceSaving": "正在儲存到本機…",
+    "persistenceSaved": "已儲存到本機",
+    "persistenceError": "本機儲存失敗",
+    "persistenceRecoveryError": "無法還原本機草稿",
+    "persistenceUnavailable": "本機自動儲存無法使用"
   }
 }

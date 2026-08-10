@@ -26,6 +26,8 @@ import {
   createClearPaperLayersCommand,
   createFillPageStroke,
   createPaperLayerFromAsset,
+  createPaperPageDocument,
+  decodePaperPageDocument,
   createReplacePaperLayerCommand,
   isPointVisibleInPaperLayer,
   loadPaperPackIndex,
@@ -36,8 +38,16 @@ import {
   type PaperHistoryCommand,
   type PaperHistoryState,
   type PaperPackIndex,
+  type PaperPageDocument,
   type PaperRuntimeAsset,
 } from '@unbound-journal/paper-engine';
+import {
+  createDebouncedAutosave,
+  createIndexedDbDocumentStorage,
+  isIndexedDbAvailable,
+  type AutosaveStatus,
+  type DebouncedAutosaveController,
+} from '@unbound-journal/storage';
 import {
   useCallback,
   useEffect,
@@ -53,8 +63,20 @@ const DEFAULT_BRUSH_SIZE = 180;
 const DEFAULT_ERASER_SIZE = 180;
 const MIN_TOOL_SIZE = 60;
 const MAX_TOOL_SIZE = 360;
+const LOCAL_DOCUMENT_ID = 'p0-local-page';
+const AUTOSAVE_DELAY_MS = 450;
 
 type PaperToolMode = 'brush' | 'eraser';
+type PersistenceStatus =
+  | 'loading'
+  | 'ready'
+  | 'restored'
+  | 'scheduled'
+  | 'saving'
+  | 'saved'
+  | 'error'
+  | 'recovery-error'
+  | 'unavailable';
 
 function createId(prefix: string) {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -79,6 +101,10 @@ export function EditorShell() {
   const activeEraseLayerIdRef = useRef<string | null>(null);
   const historyRef = useRef<CommandHistory<PaperHistoryState>>(createCommandHistory([]));
   const paperLayersRef = useRef<PaperHistoryState>(historyRef.current.present);
+  const autosaveRef = useRef<DebouncedAutosaveController<PaperPageDocument> | null>(null);
+  const persistenceReadyRef = useRef(false);
+  const documentCreatedAtRef = useRef(new Date().toISOString());
+  const hydratingPaperVersionsRef = useRef(new Set<string>());
 
   const [viewportState, setViewportState] = useState<PageViewportState | null>(null);
   const [paperPack, setPaperPack] = useState<PaperPackIndex | null>(null);
@@ -94,12 +120,31 @@ export function EditorShell() {
   const [brushSize, setBrushSize] = useState(DEFAULT_BRUSH_SIZE);
   const [eraserSize, setEraserSize] = useState(DEFAULT_ERASER_SIZE);
   const [history, setHistory] = useState<CommandHistory<PaperHistoryState>>(historyRef.current);
+  const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>('loading');
 
-  const publishHistory = useCallback((nextHistory: CommandHistory<PaperHistoryState>) => {
-    historyRef.current = nextHistory;
-    paperLayersRef.current = nextHistory.present;
-    setHistory(nextHistory);
+  const scheduleDocumentSave = useCallback((paperLayers: PaperHistoryState) => {
+    if (!persistenceReadyRef.current) return;
+    const now = new Date().toISOString();
+    autosaveRef.current?.schedule(
+      createPaperPageDocument(
+        LOCAL_DOCUMENT_ID,
+        paperLayers,
+        now,
+        documentCreatedAtRef.current,
+        LOGICAL_PAGE_SIZE,
+      ),
+    );
   }, []);
+
+  const publishHistory = useCallback(
+    (nextHistory: CommandHistory<PaperHistoryState>, persist = true) => {
+      historyRef.current = nextHistory;
+      paperLayersRef.current = nextHistory.present;
+      setHistory(nextHistory);
+      if (persist) scheduleDocumentSave(nextHistory.present);
+    },
+    [scheduleDocumentSave],
+  );
 
   const commitPaperCommand = useCallback(
     (command: PaperHistoryCommand) => {
@@ -108,6 +153,75 @@ export function EditorShell() {
     },
     [publishHistory],
   );
+
+  useEffect(() => {
+    if (!isIndexedDbAvailable()) {
+      persistenceReadyRef.current = true;
+      setPersistenceStatus('unavailable');
+      return;
+    }
+
+    const storage = createIndexedDbDocumentStorage<unknown>();
+    let active = true;
+    const autosave = createDebouncedAutosave<PaperPageDocument>({
+      delayMs: AUTOSAVE_DELAY_MS,
+      save: (document) => storage.save(LOCAL_DOCUMENT_ID, document),
+      onStatusChange: (status: AutosaveStatus) => {
+        if (!active) return;
+        if (status === 'scheduled' || status === 'saving' || status === 'saved' || status === 'error') {
+          setPersistenceStatus(status);
+        }
+      },
+    });
+    autosaveRef.current = autosave;
+
+    setPersistenceStatus('loading');
+
+    void storage
+      .load(LOCAL_DOCUMENT_ID)
+      .then((rawDocument) => {
+        if (!active) return;
+        if (rawDocument === null) {
+          persistenceReadyRef.current = true;
+          setPersistenceStatus('ready');
+          return;
+        }
+
+        const decoded = decodePaperPageDocument(rawDocument);
+        if (!decoded.ok) {
+          persistenceReadyRef.current = true;
+          setPersistenceStatus('recovery-error');
+          return;
+        }
+
+        documentCreatedAtRef.current = decoded.document.createdAt;
+        publishHistory(createCommandHistory(decoded.document.paperLayers), false);
+        persistenceReadyRef.current = true;
+        setPersistenceStatus('restored');
+      })
+      .catch(() => {
+        if (!active) return;
+        persistenceReadyRef.current = true;
+        setPersistenceStatus('error');
+      });
+
+    const flushAutosave = () => {
+      void autosave.flush().catch(() => undefined);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') flushAutosave();
+    };
+
+    window.addEventListener('pagehide', flushAutosave);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      active = false;
+      window.removeEventListener('pagehide', flushAutosave);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      void autosave.flush().catch(() => undefined);
+    };
+  }, [publishHistory]);
 
   useEffect(() => {
     let active = true;
@@ -156,6 +270,30 @@ export function EditorShell() {
   }, [selectedManifestUrl]);
 
   const paperLayers = history.present;
+
+  useEffect(() => {
+    if (!paperPack || paperLayers.length === 0) return;
+
+    for (const layer of paperLayers) {
+      if (paperAssetsByVersion[layer.paperVersionId]) continue;
+      if (hydratingPaperVersionsRef.current.has(layer.paperVersionId)) continue;
+      const entry = paperPack.papers.find((paper) => paper.paperVersionId === layer.paperVersionId);
+      if (!entry) continue;
+
+      hydratingPaperVersionsRef.current.add(layer.paperVersionId);
+      void loadPaperRuntimeAsset(entry.manifest)
+        .then((asset) => {
+          setPaperAssetsByVersion((current) => ({
+            ...current,
+            [asset.manifest.paperVersionId]: asset,
+          }));
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          hydratingPaperVersionsRef.current.delete(layer.paperVersionId);
+        });
+    }
+  }, [paperAssetsByVersion, paperLayers, paperPack]);
   const locale = (i18n.resolvedLanguage ?? 'en') as PaperAssetLocale;
   const zoomPercent = Math.round((viewportState?.zoom ?? 1) * 100);
 
@@ -190,12 +328,14 @@ export function EditorShell() {
   }, []);
 
   const performUndo = useCallback(() => {
+    if (!persistenceReadyRef.current) return;
     cancelActiveInput();
     const nextHistory = undoCommand(historyRef.current);
     if (nextHistory !== historyRef.current) publishHistory(nextHistory);
   }, [cancelActiveInput, publishHistory]);
 
   const performRedo = useCallback(() => {
+    if (!persistenceReadyRef.current) return;
     cancelActiveInput();
     const nextHistory = redoCommand(historyRef.current);
     if (nextHistory !== historyRef.current) publishHistory(nextHistory);
@@ -227,7 +367,7 @@ export function EditorShell() {
 
   const handlePageInputStart = useCallback(
     (event: PageInputEvent) => {
-      if (!event.insidePage) return;
+      if (!event.insidePage || !persistenceReadyRef.current) return;
 
       if (paperToolMode === 'eraser') {
         const current = paperLayersRef.current;
@@ -378,17 +518,39 @@ export function EditorShell() {
 
   const paperReady = Boolean(paperAsset && paperTextureStatus === 'ready' && !paperAssetError);
   const topPaperLayer = paperLayers[paperLayers.length - 1] ?? null;
-  const canFillPage = Boolean(paperAsset && paperToolMode === 'brush' && !paperAssetError);
+  const persistenceReady = persistenceStatus !== 'loading';
+  const canFillPage = Boolean(
+    persistenceReady && paperAsset && paperToolMode === 'brush' && !paperAssetError,
+  );
   const canReplaceTopLayer = Boolean(
-    paperAsset &&
+    persistenceReady &&
+      paperAsset &&
       paperToolMode === 'brush' &&
       topPaperLayer &&
       topPaperLayer.paperVersionId !== paperAsset.manifest.paperVersionId,
   );
-  const undoAvailable = historyCanUndo(history);
-  const redoAvailable = historyCanRedo(history);
+  const undoAvailable = persistenceReady && historyCanUndo(history);
+  const redoAvailable = persistenceReady && historyCanRedo(history);
   const activeToolSize = paperToolMode === 'brush' ? brushSize : eraserSize;
   const hintKey = paperToolMode === 'brush' ? 'editor.paperBrushHint' : 'editor.paperEraserHint';
+  const persistenceLabelKey =
+    persistenceStatus === 'recovery-error'
+      ? 'editor.persistenceRecoveryError'
+      : persistenceStatus === 'unavailable'
+        ? 'editor.persistenceUnavailable'
+        : persistenceStatus === 'loading'
+          ? 'editor.persistenceLoading'
+          : persistenceStatus === 'restored'
+            ? 'editor.persistenceRestored'
+            : persistenceStatus === 'scheduled'
+              ? 'editor.persistenceScheduled'
+              : persistenceStatus === 'saving'
+                ? 'editor.persistenceSaving'
+                : persistenceStatus === 'saved'
+                  ? 'editor.persistenceSaved'
+                  : persistenceStatus === 'error'
+                    ? 'editor.persistenceError'
+                    : 'editor.persistenceReady';
 
   return (
     <section className="editor-shell" aria-label={t('editor.canvasLabel')}>
@@ -425,6 +587,9 @@ export function EditorShell() {
                 : paperPackError
                   ? t('editor.assetPackErrorShort')
                   : t('editor.assetPackLoadingShort')}
+            </span>
+            <span className={`persistence-status persistence-status--${persistenceStatus}`}>
+              {t(persistenceLabelKey)}
             </span>
           </div>
           <div className="viewport-hud__actions">
@@ -504,7 +669,7 @@ export function EditorShell() {
           {paperPack ? (
             <select
               value={selectedManifestUrl ?? ''}
-              disabled={paperToolMode === 'eraser'}
+              disabled={paperToolMode === 'eraser' || !persistenceReady}
               onChange={(event: ChangeEvent<HTMLSelectElement>) => {
                 cancelActiveInput();
                 setSelectedManifestUrl(event.target.value);
@@ -569,7 +734,7 @@ export function EditorShell() {
             <button
               type="button"
               className="paper-brush-panel__clear"
-              disabled={paperLayers.length === 0}
+              disabled={!persistenceReady || paperLayers.length === 0}
               onClick={clearPage}
             >
               {t('editor.paperBrushClear')}

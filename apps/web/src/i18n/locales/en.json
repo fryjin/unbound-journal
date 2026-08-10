@@ -58,6 +58,15 @@
     "undo": "Undo",
     "redo": "Redo",
     "undoAria": "Undo last paper edit",
-    "redoAria": "Redo last undone paper edit"
+    "redoAria": "Redo last undone paper edit",
+    "persistenceLoading": "Loading local draft…",
+    "persistenceReady": "Local autosave ready",
+    "persistenceRestored": "Local draft restored",
+    "persistenceScheduled": "Local save pending…",
+    "persistenceSaving": "Saving locally…",
+    "persistenceSaved": "Saved locally",
+    "persistenceError": "Local save failed",
+    "persistenceRecoveryError": "Local draft could not be restored",
+    "persistenceUnavailable": "Local autosave unavailable"
   }
 }
