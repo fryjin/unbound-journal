@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_stripes_navy",
+  "paperVersionId": "paper_stripes_navy_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Navy Stripes",
+    "ja-JP": "ネイビーストライプ",
+    "ko-KR": "네이비 스트라이프",
+    "zh-Hant": "海軍藍條紋"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "stripe",
+    "navy",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "navy",
+  "styleFamily": "stripe"
+}

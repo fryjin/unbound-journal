@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_stripes_pastel",
+  "paperVersionId": "paper_stripes_pastel_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Pastel Stripes",
+    "ja-JP": "パステルストライプ",
+    "ko-KR": "파스텔 스트라이프",
+    "zh-Hant": "粉彩條紋"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "stripe",
+    "pastel",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "pastel",
+  "styleFamily": "stripe"
+}

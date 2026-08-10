@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_floral_vintage",
+  "paperVersionId": "paper_floral_vintage_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Vintage Floral",
+    "ja-JP": "ヴィンテージフローラル",
+    "ko-KR": "빈티지 플로럴",
+    "zh-Hant": "復古花卉"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "floral",
+    "vintage",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "vintage",
+  "styleFamily": "floral"
+}

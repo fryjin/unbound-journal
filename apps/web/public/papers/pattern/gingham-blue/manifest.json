@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_gingham_blue",
+  "paperVersionId": "paper_gingham_blue_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Blue Gingham",
+    "ja-JP": "ブルーギンガム",
+    "ko-KR": "블루 깅엄",
+    "zh-Hant": "藍色格紋"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "gingham",
+    "blue",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "blue",
+  "styleFamily": "gingham"
+}

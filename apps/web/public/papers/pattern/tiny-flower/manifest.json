@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_tiny_flower",
+  "paperVersionId": "paper_tiny_flower_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Tiny Flowers",
+    "ja-JP": "小花柄",
+    "ko-KR": "미니 플라워",
+    "zh-Hant": "細碎小花"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "floral",
+    "cream",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "cream",
+  "styleFamily": "floral"
+}

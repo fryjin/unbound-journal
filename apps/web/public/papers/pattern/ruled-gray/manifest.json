@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_ruled_gray",
+  "paperVersionId": "paper_ruled_gray_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Soft Gray Ruled",
+    "ja-JP": "グレー罫線",
+    "ko-KR": "소프트 그레이 라인",
+    "zh-Hant": "柔灰橫線"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "ruled",
+    "gray",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "gray",
+  "styleFamily": "ruled"
+}
