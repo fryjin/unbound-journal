@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "Unbound Journal",
+    "language": "言語"
+  },
+  "editor": {
+    "canvasLabel": "ジャーナルエディター",
+    "toolsLabel": "作成ツール",
+    "bootstrapTitle": "Paper Engine の開始地点",
+    "bootstrapHint": "P0.0 リポジトリ初期化 — 次の段階でキャンバス操作を実装します。",
+    "tools": {
+      "paper": "ペーパー",
+      "media": "メディア",
+      "text": "テキスト",
+      "draw": "描く"
+    },
+    "assetContractTitle": "Paper Asset Contract 準備完了",
+    "assetPackLoading": "スターターペーパーパックを読み込み中…",
+    "assetPackError": "スターターペーパーパックを読み込めませんでした。",
+    "assetPackReady": "開発用ペーパー {{total}} 種 — パターン {{pattern}} / フルシート {{fullSheet}}。"
+  }
+}

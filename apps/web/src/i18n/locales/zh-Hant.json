@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "Unbound Journal",
+    "language": "語言"
+  },
+  "editor": {
+    "canvasLabel": "手帳編輯器",
+    "toolsLabel": "創作工具",
+    "bootstrapTitle": "Paper Engine 從這裡開始",
+    "bootstrapHint": "P0.0 儲存庫初始化 — 下一階段加入畫布互動。",
+    "tools": {
+      "paper": "紙張",
+      "media": "媒體",
+      "text": "文字",
+      "draw": "畫筆"
+    },
+    "assetContractTitle": "Paper Asset Contract 已就緒",
+    "assetPackLoading": "正在載入起始紙張包…",
+    "assetPackError": "無法載入起始紙張包。",
+    "assetPackReady": "已準備 {{total}} 款開發紙張 — Pattern {{pattern}} / Full-sheet {{fullSheet}}。"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "Unbound Journal",
+    "language": "Language"
+  },
+  "editor": {
+    "canvasLabel": "Journal editor",
+    "toolsLabel": "Creation tools",
+    "bootstrapTitle": "Paper Engine starts here",
+    "bootstrapHint": "P0.0 repository bootstrap — canvas behavior arrives next.",
+    "tools": {
+      "paper": "Paper",
+      "media": "Media",
+      "text": "Text",
+      "draw": "Draw"
+    },
+    "assetContractTitle": "Paper Asset Contract ready",
+    "assetPackLoading": "Loading starter paper pack…",
+    "assetPackError": "Starter paper pack could not be loaded.",
+    "assetPackReady": "{{total}} development papers ready — {{pattern}} patterns / {{fullSheet}} full sheets."
+  }
+}
