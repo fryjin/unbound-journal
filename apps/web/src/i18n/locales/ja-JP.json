@@ -41,6 +41,14 @@
     "paperBrushSize": "ブラシ",
     "paperBrushClear": "クリア",
     "paperBrushHint": "1本指でペーパーを敷く · ピンチ／2本指で移動",
-    "brushLayerStatus": "{{layers}} レイヤー · {{total}} 種のペーパー"
+    "brushLayerStatus": "{{layers}} レイヤー · {{total}} 種のペーパー",
+    "paperToolModeLabel": "ペーパーツールモード",
+    "paperToolLay": "敷く",
+    "paperToolErase": "消す",
+    "paperEraserTarget": "消去対象",
+    "paperEraserTopVisible": "一番上に見えるペーパー",
+    "paperEraserGestureLock": "1回のジェスチャーは1レイヤーだけを消します",
+    "paperEraserSize": "消しゴム",
+    "paperEraserHint": "1本指で一番上のペーパーを消す · 下のレイヤーを消すには一度指を離す"
   }
 }

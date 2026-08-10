@@ -3,7 +3,7 @@
 ## Current
 
 - Project codename / repository name: `unbound-journal`
-- Milestone: `P0.4 — Paper Brush`
+- Milestone: `P0.5 — Paper Eraser`
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
 
@@ -75,6 +75,21 @@
 - Adjustable hard round brush (60–360 logical units)
 - Desktop mouse painting for development QA
 
+## Completed in P0.5
+
+- Renderer-independent hard-mask point visibility queries
+- Top-visible PaperLayer hit detection at erase gesture start
+- One erase gesture locks exactly one PaperLayer
+- Real-time erase preview mutates only the target layer raster cache
+- Lower PaperLayers are revealed but never modified by the same continuous erase gesture
+- New gesture performs a fresh top-visible hit test
+- Vector erase strokes append to the locked layer on gesture end
+- Erase cancellation restores the target from committed mask history
+- Second-finger transition cancels uncommitted erasing before viewport zoom/pan
+- Separate Lay / Erase Paper tool modes
+- Adjustable hard round eraser (60–360 logical units)
+- Tier-1 + Tier-2 localized Paper Eraser UI
+
 ## Starter pack quality boundary
 
 The P0.1 assets are development fixtures generated from the model image-generation workflow. They intentionally validate asset diversity and runtime contracts; they are not final marketplace-quality creator assets.
@@ -83,7 +98,7 @@ Future official or creator assets will enter through the same PaperRuntimeManife
 
 ## Environment limitation
 
-The original generation environment could not resolve all public npm packages through its configured registry. P0.4 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
+The original generation environment could not resolve all public npm packages through its configured registry. P0.5 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
 
 The dependency-free paper-pack validator remains available through:
 
@@ -93,10 +108,9 @@ npm run papers:validate
 
 ## Next
 
-`P0.5 — Paper Eraser`
+`P0.6 — Fill / Replace`
 
-1. Detect the top visible PaperLayer under the eraser start point
-2. Lock one erase gesture to exactly one PaperLayer
-3. Append erase mask strokes to the locked layer
-4. Reveal the immediate lower paper without punching through multiple layers
-5. Keep Undo/Redo integration deferred to the dedicated History milestone
+1. Fill the current selected paper across the entire page mask
+2. Preserve the existing mask while replacing a PaperLayer texture
+3. Keep Fill / Replace compatible with the later unified Command History
+4. Do not introduce cloud persistence or marketplace state

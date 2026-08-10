@@ -14,6 +14,7 @@ export {
 } from './PaperBrushPreview';
 export {
   PaperMaskedTexture,
+  type PaperMaskedTextureHandle,
   type PaperMaskedTextureProps,
 } from './PaperMaskedTexture';
 export {
@@ -21,4 +22,10 @@ export {
   type PaperTextureLoadStatus,
   type PaperTextureProps,
 } from './PaperTexture';
-export { PaperStack, type PaperRenderLayer, type PaperStackProps } from './PaperStack';
+export {
+  PaperStack,
+  type PaperEraseCommit,
+  type PaperRenderLayer,
+  type PaperStackHandle,
+  type PaperStackProps,
+} from './PaperStack';

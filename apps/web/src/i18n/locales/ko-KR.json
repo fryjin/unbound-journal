@@ -41,6 +41,14 @@
     "paperBrushSize": "브러시",
     "paperBrushClear": "지우기",
     "paperBrushHint": "한 손가락으로 페이퍼 놓기 · 핀치/두 손가락으로 이동",
-    "brushLayerStatus": "레이어 {{layers}}개 · 페이퍼 {{total}}종"
+    "brushLayerStatus": "레이어 {{layers}}개 · 페이퍼 {{total}}종",
+    "paperToolModeLabel": "페이퍼 도구 모드",
+    "paperToolLay": "놓기",
+    "paperToolErase": "지우기",
+    "paperEraserTarget": "지우기 대상",
+    "paperEraserTopVisible": "가장 위에 보이는 페이퍼",
+    "paperEraserGestureLock": "한 번의 제스처는 한 레이어만 지웁니다",
+    "paperEraserSize": "지우개",
+    "paperEraserHint": "한 손가락으로 가장 위의 페이퍼 지우기 · 아래 레이어는 손을 뗀 뒤 다시 지우기"
   }
 }

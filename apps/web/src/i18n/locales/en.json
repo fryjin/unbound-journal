@@ -41,6 +41,14 @@
     "paperBrushSize": "Brush",
     "paperBrushClear": "Clear",
     "paperBrushHint": "Swipe with one finger to lay paper · pinch or use two fingers to move",
-    "brushLayerStatus": "{{layers}} layers · {{total}} papers available"
+    "brushLayerStatus": "{{layers}} layers · {{total}} papers available",
+    "paperToolModeLabel": "Paper tool mode",
+    "paperToolLay": "Lay",
+    "paperToolErase": "Erase",
+    "paperEraserTarget": "Erase target",
+    "paperEraserTopVisible": "Top visible paper",
+    "paperEraserGestureLock": "One gesture stays on one paper layer",
+    "paperEraserSize": "Eraser",
+    "paperEraserHint": "Swipe with one finger to erase the top visible paper · lift before targeting the layer below"
   }
 }

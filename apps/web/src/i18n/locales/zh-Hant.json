@@ -41,6 +41,14 @@
     "paperBrushSize": "筆刷",
     "paperBrushClear": "清空",
     "paperBrushHint": "單指滑動鋪紙 · 雙指縮放或移動畫面",
-    "brushLayerStatus": "{{layers}} 個紙張圖層 · 可用 {{total}} 款紙張"
+    "brushLayerStatus": "{{layers}} 個紙張圖層 · 可用 {{total}} 款紙張",
+    "paperToolModeLabel": "紙張工具模式",
+    "paperToolLay": "鋪紙",
+    "paperToolErase": "擦除",
+    "paperEraserTarget": "擦除目標",
+    "paperEraserTopVisible": "目前最上層可見紙張",
+    "paperEraserGestureLock": "一次手勢只會擦除一個紙張圖層",
+    "paperEraserSize": "橡皮擦",
+    "paperEraserHint": "單指擦除最上層可見紙張 · 抬手後才能重新命中下一層"
   }
 }

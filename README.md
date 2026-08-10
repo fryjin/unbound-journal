@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.4 — Paper Brush**.
+Current milestone: **P0.5 — Paper Eraser**.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -112,3 +112,18 @@ P0.4 turns paper rendering into the first real creation interaction:
 - switching paper creates a new top layer only on the next stroke
 
 The committed renderer uses an isolated per-layer raster cache, preparing P0.5 erasing without allowing one layer's compositing operation to affect lower layers.
+
+
+## P0.5 paper eraser
+
+P0.5 adds layer-safe paper erasing:
+
+- the eraser chooses the top visible PaperLayer only when a gesture starts
+- the entire continuous gesture stays locked to that one PaperLayer
+- erasing through the target layer reveals lower paper without continuing into it
+- lifting and starting a new gesture performs a fresh top-visible hit test
+- active erasing mutates only the target layer's isolated renderer cache
+- gesture end commits one vector `operation: "erase"` PaperMaskStroke
+- adding a second finger cancels the uncommitted erase preview and restores the committed mask
+
+Undo/Redo remains intentionally deferred to the dedicated History milestone.
