@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_newspaper",
+  "paperVersionId": "paper_newspaper_v1",
+  "type": "full-sheet",
+  "renderMode": "cover",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Vintage Newspaper",
+    "ja-JP": "ヴィンテージ新聞",
+    "ko-KR": "빈티지 신문",
+    "zh-Hant": "復古報紙"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "newspaper",
+    "vintage",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "vintage",
+  "styleFamily": "newspaper"
+}

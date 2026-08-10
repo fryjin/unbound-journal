@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_collage_vintage",
+  "paperVersionId": "paper_collage_vintage_v1",
+  "type": "full-sheet",
+  "renderMode": "cover",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Vintage Collage",
+    "ja-JP": "ヴィンテージコラージュ",
+    "ko-KR": "빈티지 콜라주",
+    "zh-Hant": "復古拼貼"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "collage",
+    "vintage",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "vintage",
+  "styleFamily": "collage"
+}

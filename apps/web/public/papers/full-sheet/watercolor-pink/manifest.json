@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_watercolor_pink",
+  "paperVersionId": "paper_watercolor_pink_v1",
+  "type": "full-sheet",
+  "renderMode": "cover",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Pink Watercolor",
+    "ja-JP": "ピンク水彩",
+    "ko-KR": "핑크 수채화",
+    "zh-Hant": "粉色水彩"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "watercolor",
+    "pink",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "pink",
+  "styleFamily": "watercolor"
+}

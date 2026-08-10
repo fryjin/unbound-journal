@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_vintage_paper",
+  "paperVersionId": "paper_vintage_paper_v1",
+  "type": "full-sheet",
+  "renderMode": "cover",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Vintage Writing Paper",
+    "ja-JP": "ヴィンテージ便箋",
+    "ko-KR": "빈티지 필기지",
+    "zh-Hant": "復古書寫紙"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "paper",
+    "vintage",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "vintage",
+  "styleFamily": "paper"
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_sky_clouds",
+  "paperVersionId": "paper_sky_clouds_v1",
+  "type": "full-sheet",
+  "renderMode": "cover",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Blue Sky Clouds",
+    "ja-JP": "青空と雲",
+    "ko-KR": "푸른 하늘 구름",
+    "zh-Hant": "藍天白雲"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "illustration",
+    "blue",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "blue",
+  "styleFamily": "illustration"
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_dark_chalkboard",
+  "paperVersionId": "paper_dark_chalkboard_v1",
+  "type": "full-sheet",
+  "renderMode": "cover",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Dark Chalkboard",
+    "ja-JP": "ダーク黒板",
+    "ko-KR": "다크 칠판",
+    "zh-Hant": "深色黑板"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "material",
+    "dark",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "dark",
+  "styleFamily": "material"
+}

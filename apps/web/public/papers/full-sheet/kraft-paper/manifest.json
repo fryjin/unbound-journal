@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_kraft_paper",
+  "paperVersionId": "paper_kraft_paper_v1",
+  "type": "full-sheet",
+  "renderMode": "cover",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Kraft Paper",
+    "ja-JP": "クラフトペーパー",
+    "ko-KR": "크라프트 페이퍼",
+    "zh-Hant": "牛皮紙"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "material",
+    "kraft",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "kraft",
+  "styleFamily": "material"
+}

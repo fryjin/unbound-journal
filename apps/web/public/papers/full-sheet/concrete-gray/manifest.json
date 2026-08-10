@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_concrete_gray",
+  "paperVersionId": "paper_concrete_gray_v1",
+  "type": "full-sheet",
+  "renderMode": "cover",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Gray Concrete",
+    "ja-JP": "グレーコンクリート",
+    "ko-KR": "그레이 콘크리트",
+    "zh-Hant": "灰色水泥"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "material",
+    "gray",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "gray",
+  "styleFamily": "material"
+}
