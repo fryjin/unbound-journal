@@ -24,6 +24,16 @@
     "fitPageAria": "將頁面調整為適合視窗。目前縮放 {{zoom}}%。",
     "assetPackShort": "已備妥 {{total}} 款紙張",
     "assetPackLoadingShort": "正在載入紙張…",
-    "assetPackErrorShort": "紙張包目前無法使用"
+    "assetPackErrorShort": "紙張包目前無法使用",
+    "paperPreviewLabel": "紙張渲染器預覽",
+    "paperPreview": "渲染預覽",
+    "paperPreviewSelect": "選擇要預覽的紙張",
+    "paperPreviewLoading": "正在載入紙張…",
+    "paperPreviewReady": "Runtime 紋理已就緒",
+    "paperPreviewError": "無法載入紙張紋理",
+    "renderModeTile": "平鋪 Pattern",
+    "renderModeCover": "Full-sheet 覆蓋",
+    "paperTypePattern": "Pattern 紙張",
+    "paperTypeFullSheet": "Full-sheet 紙張"
   }
 }

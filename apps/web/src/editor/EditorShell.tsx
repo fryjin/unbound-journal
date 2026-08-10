@@ -1,27 +1,42 @@
 import { LOGICAL_PAGE_SIZE } from '@unbound-journal/editor-core';
 import {
   PageViewport,
+  PaperStack,
   type PageViewportHandle,
   type PageViewportState,
+  type PaperTextureLoadStatus,
 } from '@unbound-journal/editor-renderer-konva';
-import { loadPaperPackIndex, type PaperPackIndex } from '@unbound-journal/paper-engine';
-import { useEffect, useRef, useState } from 'react';
+import {
+  loadPaperPackIndex,
+  loadPaperRuntimeAsset,
+  type PaperAssetLocale,
+  type PaperCatalogEntry,
+  type PaperPackIndex,
+  type PaperRuntimeAsset,
+} from '@unbound-journal/paper-engine';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const tools = ['paper', 'media', 'text', 'draw'] as const;
 
 export function EditorShell() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const viewportRef = useRef<PageViewportHandle | null>(null);
   const [viewportState, setViewportState] = useState<PageViewportState | null>(null);
   const [paperPack, setPaperPack] = useState<PaperPackIndex | null>(null);
   const [paperPackError, setPaperPackError] = useState(false);
+  const [selectedManifestUrl, setSelectedManifestUrl] = useState<string | null>(null);
+  const [paperAsset, setPaperAsset] = useState<PaperRuntimeAsset | null>(null);
+  const [paperAssetError, setPaperAssetError] = useState(false);
+  const [paperTextureStatus, setPaperTextureStatus] = useState<PaperTextureLoadStatus>('idle');
 
   useEffect(() => {
     let active = true;
     void loadPaperPackIndex()
       .then((pack) => {
-        if (active) setPaperPack(pack);
+        if (!active) return;
+        setPaperPack(pack);
+        setSelectedManifestUrl((current) => current ?? pack.papers[0]?.manifest ?? null);
       })
       .catch(() => {
         if (active) setPaperPackError(true);
@@ -32,7 +47,46 @@ export function EditorShell() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!selectedManifestUrl) {
+      setPaperAsset(null);
+      return;
+    }
+
+    let active = true;
+    setPaperAsset(null);
+    setPaperAssetError(false);
+    setPaperTextureStatus('idle');
+
+    void loadPaperRuntimeAsset(selectedManifestUrl)
+      .then((asset) => {
+        if (active) setPaperAsset(asset);
+      })
+      .catch(() => {
+        if (active) setPaperAssetError(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedManifestUrl]);
+
+  const locale = (i18n.resolvedLanguage ?? 'en') as PaperAssetLocale;
   const zoomPercent = Math.round((viewportState?.zoom ?? 1) * 100);
+
+  const groupedPapers = useMemo(() => {
+    if (!paperPack) return { pattern: [], fullSheet: [] } as const;
+    return {
+      pattern: paperPack.papers.filter((paper) => paper.type === 'pattern'),
+      fullSheet: paperPack.papers.filter((paper) => paper.type === 'full-sheet'),
+    };
+  }, [paperPack]);
+
+  const selectedEntry = useMemo<PaperCatalogEntry | null>(() => {
+    return paperPack?.papers.find((paper) => paper.manifest === selectedManifestUrl) ?? null;
+  }, [paperPack, selectedManifestUrl]);
+
+  const selectedTitle = selectedEntry?.title[locale] ?? selectedEntry?.title.en ?? '';
 
   return (
     <section className="editor-shell" aria-label={t('editor.canvasLabel')}>
@@ -41,7 +95,14 @@ export function EditorShell() {
           ref={viewportRef}
           ariaLabel={t('editor.viewportLabel')}
           onViewportChange={setViewportState}
-        />
+        >
+          {paperAsset ? (
+            <PaperStack
+              layers={[{ id: 'renderer-preview', asset: paperAsset }]}
+              onLayerLoadStateChange={(_layerId, status) => setPaperTextureStatus(status)}
+            />
+          ) : null}
+        </PageViewport>
 
         <div className="viewport-hud" aria-live="polite">
           <div className="viewport-hud__status">
@@ -64,6 +125,51 @@ export function EditorShell() {
           >
             {t('editor.fitPage')} · {zoomPercent}%
           </button>
+        </div>
+
+        <div className="paper-renderer-preview" aria-label={t('editor.paperPreviewLabel')}>
+          <div className="paper-renderer-preview__meta">
+            <span>{t('editor.paperPreview')}</span>
+            <strong>{selectedTitle || t('editor.paperPreviewLoading')}</strong>
+            {selectedEntry ? (
+              <small>
+                {selectedEntry.renderMode === 'tile'
+                  ? t('editor.renderModeTile')
+                  : t('editor.renderModeCover')}
+              </small>
+            ) : null}
+          </div>
+
+          {paperPack ? (
+            <select
+              value={selectedManifestUrl ?? ''}
+              onChange={(event) => setSelectedManifestUrl(event.target.value)}
+              aria-label={t('editor.paperPreviewSelect')}
+            >
+              <optgroup label={t('editor.paperTypePattern')}>
+                {groupedPapers.pattern.map((paper) => (
+                  <option key={paper.paperVersionId} value={paper.manifest}>
+                    {paper.title[locale] ?? paper.title.en}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label={t('editor.paperTypeFullSheet')}>
+                {groupedPapers.fullSheet.map((paper) => (
+                  <option key={paper.paperVersionId} value={paper.manifest}>
+                    {paper.title[locale] ?? paper.title.en}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          ) : null}
+
+          <span className="paper-renderer-preview__state" role="status">
+            {paperAssetError || paperTextureStatus === 'error'
+              ? t('editor.paperPreviewError')
+              : paperTextureStatus === 'ready'
+                ? t('editor.paperPreviewReady')
+                : t('editor.paperPreviewLoading')}
+          </span>
         </div>
 
         <div className="viewport-gesture-hint">{t('editor.viewportHint')}</div>

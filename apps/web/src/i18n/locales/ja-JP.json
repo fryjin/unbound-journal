@@ -24,6 +24,16 @@
     "fitPageAria": "ページ全体を表示します。現在のズームは {{zoom}} パーセントです。",
     "assetPackShort": "ペーパー {{total}} 種",
     "assetPackLoadingShort": "ペーパーを読み込み中…",
-    "assetPackErrorShort": "ペーパーパックを利用できません"
+    "assetPackErrorShort": "ペーパーパックを利用できません",
+    "paperPreviewLabel": "ペーパーレンダラーのプレビュー",
+    "paperPreview": "レンダラー確認",
+    "paperPreviewSelect": "プレビューするペーパーを選択",
+    "paperPreviewLoading": "ペーパーを読み込み中…",
+    "paperPreviewReady": "ランタイムテクスチャ準備完了",
+    "paperPreviewError": "ペーパーテクスチャを読み込めませんでした",
+    "renderModeTile": "タイルパターン",
+    "renderModeCover": "フルシート表示",
+    "paperTypePattern": "パターンペーパー",
+    "paperTypeFullSheet": "フルシートペーパー"
   }
 }

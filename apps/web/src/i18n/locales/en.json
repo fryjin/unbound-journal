@@ -24,6 +24,16 @@
     "fitPageAria": "Fit page to viewport. Current zoom {{zoom}} percent.",
     "assetPackShort": "{{total}} papers ready",
     "assetPackLoadingShort": "Loading papers…",
-    "assetPackErrorShort": "Paper pack unavailable"
+    "assetPackErrorShort": "Paper pack unavailable",
+    "paperPreviewLabel": "Paper renderer preview",
+    "paperPreview": "Renderer preview",
+    "paperPreviewSelect": "Choose a paper to preview",
+    "paperPreviewLoading": "Loading paper…",
+    "paperPreviewReady": "Runtime texture ready",
+    "paperPreviewError": "Paper texture could not be loaded",
+    "renderModeTile": "Tile pattern",
+    "renderModeCover": "Full-sheet cover",
+    "paperTypePattern": "Pattern papers",
+    "paperTypeFullSheet": "Full-sheet papers"
   }
 }

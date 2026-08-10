@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.2 — Page & Viewport**.
+Current milestone: **P0.3 — Paper Renderer**.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -85,4 +85,16 @@ P0.2 replaces the static page placeholder with the real Konva viewport foundatio
 - Konva DPR/Retina canvas rendering
 - wheel zoom for desktop QA
 
-The viewport deliberately does not implement paper painting yet. P0.3+ will render paper content inside the same logical page group.
+The viewport deliberately keeps page navigation separate from paper editing.
+
+## P0.3 paper renderer
+
+P0.3 connects the Paper Runtime Contract to the Konva page:
+
+- Pattern papers render as stable repeated textures (`tile`)
+- Full-sheet papers render with aspect-preserving cover behavior (`cover`)
+- manifest-relative runtime asset URLs are resolved before rendering
+- ordered `PaperStack` establishes the future multi-layer compositor boundary
+- a development-only selector can preview all 40 fixtures
+
+The preview selector is a QA tool, not the final paper-application interaction. P0.4 introduces actual Paper Brush masks.

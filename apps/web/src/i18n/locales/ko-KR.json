@@ -24,6 +24,16 @@
     "fitPageAria": "페이지를 화면에 맞춥니다. 현재 확대율은 {{zoom}}퍼센트입니다.",
     "assetPackShort": "페이퍼 {{total}}종 준비됨",
     "assetPackLoadingShort": "페이퍼 불러오는 중…",
-    "assetPackErrorShort": "페이퍼 팩을 사용할 수 없음"
+    "assetPackErrorShort": "페이퍼 팩을 사용할 수 없음",
+    "paperPreviewLabel": "페이퍼 렌더러 미리보기",
+    "paperPreview": "렌더러 미리보기",
+    "paperPreviewSelect": "미리 볼 페이퍼 선택",
+    "paperPreviewLoading": "페이퍼 불러오는 중…",
+    "paperPreviewReady": "런타임 텍스처 준비됨",
+    "paperPreviewError": "페이퍼 텍스처를 불러오지 못했습니다",
+    "renderModeTile": "타일 패턴",
+    "renderModeCover": "풀시트 커버",
+    "paperTypePattern": "패턴 페이퍼",
+    "paperTypeFullSheet": "풀시트 페이퍼"
   }
 }
