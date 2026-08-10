@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_leaves_green",
+  "paperVersionId": "paper_leaves_green_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Green Leaves",
+    "ja-JP": "グリーンリーフ",
+    "ko-KR": "그린 리프",
+    "zh-Hant": "綠葉"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "botanical",
+    "green",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "green",
+  "styleFamily": "botanical"
+}

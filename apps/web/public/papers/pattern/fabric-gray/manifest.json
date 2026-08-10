@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_fabric_gray",
+  "paperVersionId": "paper_fabric_gray_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Gray Fabric",
+    "ja-JP": "グレーファブリック",
+    "ko-KR": "그레이 패브릭",
+    "zh-Hant": "灰色布紋"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "fabric",
+    "gray",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "gray",
+  "styleFamily": "fabric"
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_ledger",
+  "paperVersionId": "paper_ledger_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Vintage Ledger",
+    "ja-JP": "ヴィンテージ台帳",
+    "ko-KR": "빈티지 원장",
+    "zh-Hant": "復古帳簿"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "ledger",
+    "cream",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "cream",
+  "styleFamily": "ledger"
+}

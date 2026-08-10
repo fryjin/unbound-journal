@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_dot_grid",
+  "paperVersionId": "paper_dot_grid_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Warm Dot Grid",
+    "ja-JP": "ウォームドット",
+    "ko-KR": "웜 도트",
+    "zh-Hant": "暖色點陣"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "dot",
+    "cream",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "cream",
+  "styleFamily": "dot"
+}

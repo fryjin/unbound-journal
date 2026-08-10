@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_isometric_grid",
+  "paperVersionId": "paper_isometric_grid_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Isometric Grid",
+    "ja-JP": "アイソメグリッド",
+    "ko-KR": "아이소메트릭 그리드",
+    "zh-Hant": "等角網格"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "geometric",
+    "cream",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "cream",
+  "styleFamily": "geometric"
+}

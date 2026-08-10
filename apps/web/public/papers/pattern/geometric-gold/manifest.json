@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_geometric_gold",
+  "paperVersionId": "paper_geometric_gold_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Gold Geometry",
+    "ja-JP": "ゴールドジオメトリ",
+    "ko-KR": "골드 지오메트리",
+    "zh-Hant": "金色幾何"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "geometric",
+    "gold",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "gold",
+  "styleFamily": "geometric"
+}

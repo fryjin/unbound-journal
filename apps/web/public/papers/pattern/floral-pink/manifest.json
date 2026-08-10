@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_floral_pink",
+  "paperVersionId": "paper_floral_pink_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Pink Floral",
+    "ja-JP": "ピンクフローラル",
+    "ko-KR": "핑크 플로럴",
+    "zh-Hant": "粉色花卉"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "floral",
+    "pink",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "pink",
+  "styleFamily": "floral"
+}

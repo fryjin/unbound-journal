@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "paperTemplateId": "paper_herringbone",
+  "paperVersionId": "paper_herringbone_v1",
+  "type": "pattern",
+  "renderMode": "tile",
+  "developmentFixture": true,
+  "sourceKind": "model-generated",
+  "sourceLocale": "en",
+  "title": {
+    "en": "Cream Herringbone",
+    "ja-JP": "クリームヘリンボーン",
+    "ko-KR": "크림 헤링본",
+    "zh-Hant": "奶油人字紋"
+  },
+  "variants": {
+    "original": "./original.webp",
+    "editor": "./editor.webp",
+    "preview": "./preview.webp",
+    "thumbnail": "./thumbnail.webp"
+  },
+  "texture": {
+    "defaultScale": 1,
+    "rotation": 0,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "tags": [
+    "herringbone",
+    "cream",
+    "paper",
+    "journal"
+  ],
+  "colorFamily": "cream",
+  "styleFamily": "herringbone"
+}
