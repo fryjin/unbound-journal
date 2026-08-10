@@ -1,4 +1,4 @@
-import type { Point } from '@unbound-journal/editor-core';
+import { LOGICAL_PAGE_SIZE, type Point, type Size } from '@unbound-journal/editor-core';
 import type { PaperTextureDefaults } from './asset-contract';
 import type { PaperRuntimeAsset } from './catalog';
 
@@ -46,6 +46,23 @@ export function createEraseStroke(id: string, points: readonly Point[], size: nu
   return createMaskStroke(id, 'erase', points, size);
 }
 
+/**
+ * Represents Fill Page using the same vector mask primitive as brush painting.
+ * The generated round paint stroke covers the full logical page and is clipped
+ * by the page compositor, avoiding renderer-only fill state.
+ */
+export function createFillPageStroke(
+  id: string,
+  pageSize: Size = LOGICAL_PAGE_SIZE,
+): PaperMaskStroke {
+  const center = {
+    x: pageSize.width / 2,
+    y: pageSize.height / 2,
+  };
+  const fullPageRadius = Math.hypot(pageSize.width / 2, pageSize.height / 2) + 1;
+  return createMaskStroke(id, 'paint', [center], fullPageRadius * 2);
+}
+
 export function createPaperLayer(
   id: string,
   paperVersionId: string,
@@ -86,6 +103,29 @@ export function appendPaperMaskStroke(layer: PaperLayer, stroke: PaperMaskStroke
   return {
     ...layer,
     maskStrokes: [...layer.maskStrokes, clonePaperMaskStroke(stroke)],
+  };
+}
+
+/**
+ * Replaces only the material used by an existing PaperLayer. The layer identity,
+ * creation time and exact mask history are preserved. Texture transform resets
+ * to the replacement asset defaults because those defaults belong to the new
+ * material.
+ */
+export function replacePaperLayerFromAsset(
+  layer: PaperLayer,
+  asset: PaperRuntimeAsset,
+): PaperLayer {
+  return {
+    ...layer,
+    paperVersionId: asset.manifest.paperVersionId,
+    texture: {
+      scale: asset.manifest.texture.defaultScale,
+      rotation: asset.manifest.texture.rotation,
+      offsetX: asset.manifest.texture.offsetX,
+      offsetY: asset.manifest.texture.offsetY,
+    },
+    maskStrokes: layer.maskStrokes.map(clonePaperMaskStroke),
   };
 }
 

@@ -49,6 +49,10 @@
     "paperEraserTopVisible": "目前最上層可見紙張",
     "paperEraserGestureLock": "一次手勢只會擦除一個紙張圖層",
     "paperEraserSize": "橡皮擦",
-    "paperEraserHint": "單指擦除最上層可見紙張 · 抬手後才能重新命中下一層"
+    "paperEraserHint": "單指擦除最上層可見紙張 · 抬手後才能重新命中下一層",
+    "paperFillPage": "鋪滿",
+    "paperFillPageAria": "使用目前選擇的紙張鋪滿整個頁面",
+    "paperReplaceTop": "替換頂層",
+    "paperReplaceTopAria": "保留遮罩形狀，將最上層紙張替換為目前選擇的紙張"
   }
 }

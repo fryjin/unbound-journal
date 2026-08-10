@@ -49,6 +49,10 @@
     "paperEraserTopVisible": "一番上に見えるペーパー",
     "paperEraserGestureLock": "1回のジェスチャーは1レイヤーだけを消します",
     "paperEraserSize": "消しゴム",
-    "paperEraserHint": "1本指で一番上のペーパーを消す · 下のレイヤーを消すには一度指を離す"
+    "paperEraserHint": "1本指で一番上のペーパーを消す · 下のレイヤーを消すには一度指を離す",
+    "paperFillPage": "全面に敷く",
+    "paperFillPageAria": "選択中のペーパーをページ全面に敷きます",
+    "paperReplaceTop": "最上層を差替",
+    "paperReplaceTopAria": "マスクを維持したまま最上層のペーパーを選択中のペーパーに差し替えます"
   }
 }

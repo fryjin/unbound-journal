@@ -49,6 +49,10 @@
     "paperEraserTopVisible": "가장 위에 보이는 페이퍼",
     "paperEraserGestureLock": "한 번의 제스처는 한 레이어만 지웁니다",
     "paperEraserSize": "지우개",
-    "paperEraserHint": "한 손가락으로 가장 위의 페이퍼 지우기 · 아래 레이어는 손을 뗀 뒤 다시 지우기"
+    "paperEraserHint": "한 손가락으로 가장 위의 페이퍼 지우기 · 아래 레이어는 손을 뗀 뒤 다시 지우기",
+    "paperFillPage": "전체 채우기",
+    "paperFillPageAria": "선택한 페이퍼로 페이지 전체를 채웁니다",
+    "paperReplaceTop": "맨 위 교체",
+    "paperReplaceTopAria": "마스크는 유지하고 맨 위 페이퍼 레이어를 선택한 페이퍼로 교체합니다"
   }
 }

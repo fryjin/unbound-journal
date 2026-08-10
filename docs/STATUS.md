@@ -3,7 +3,7 @@
 ## Current
 
 - Project codename / repository name: `unbound-journal`
-- Milestone: `P0.5 — Paper Eraser`
+- Milestone: `P0.6 — Fill / Replace`
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
 
@@ -90,6 +90,18 @@
 - Adjustable hard round eraser (60–360 logical units)
 - Tier-1 + Tier-2 localized Paper Eraser UI
 
+## Completed in P0.6
+
+- Renderer-independent `createFillPageStroke()` using the existing vector paint-mask contract
+- Fill Page reuses the same top PaperLayer when its paper matches the selected paper
+- Fill Page creates a new top layer only when the selected paper differs
+- Full-page masks remain compatible with erasing and top-visible hit testing
+- `replacePaperLayerFromAsset()` preserves layer identity and complete mask history
+- Replace changes `paperVersionId`, renderer asset and texture defaults without changing layer order or count
+- P0.6 UI replaces only the top PaperLayer; a formal layer manager remains out of scope
+- Fill / Replace cancel uncommitted input previews and are disabled in Erase mode
+- Tier-1 + Tier-2 localized Fill / Replace controls
+
 ## Starter pack quality boundary
 
 The P0.1 assets are development fixtures generated from the model image-generation workflow. They intentionally validate asset diversity and runtime contracts; they are not final marketplace-quality creator assets.
@@ -98,7 +110,7 @@ Future official or creator assets will enter through the same PaperRuntimeManife
 
 ## Environment limitation
 
-The original generation environment could not resolve all public npm packages through its configured registry. P0.5 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
+The original generation environment could not resolve all public npm packages through its configured registry. P0.6 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
 
 The dependency-free paper-pack validator remains available through:
 
@@ -108,9 +120,9 @@ npm run papers:validate
 
 ## Next
 
-`P0.6 — Fill / Replace`
+`P0.7 — History / Undo / Redo`
 
-1. Fill the current selected paper across the entire page mask
-2. Preserve the existing mask while replacing a PaperLayer texture
-3. Keep Fill / Replace compatible with the later unified Command History
-4. Do not introduce cloud persistence or marketplace state
+1. Introduce unified command history for paper paint / erase / fill / replace / layer creation
+2. Ensure Undo/Redo restores exact PaperLayer order, material and mask history
+3. Keep high-frequency input mutable during gestures and commit one history command per completed action
+4. Do not add cloud persistence yet

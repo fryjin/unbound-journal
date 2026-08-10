@@ -49,6 +49,10 @@
     "paperEraserTopVisible": "Top visible paper",
     "paperEraserGestureLock": "One gesture stays on one paper layer",
     "paperEraserSize": "Eraser",
-    "paperEraserHint": "Swipe with one finger to erase the top visible paper · lift before targeting the layer below"
+    "paperEraserHint": "Swipe with one finger to erase the top visible paper · lift before targeting the layer below",
+    "paperFillPage": "Fill",
+    "paperFillPageAria": "Fill the entire page with the selected paper",
+    "paperReplaceTop": "Replace top",
+    "paperReplaceTopAria": "Replace the top paper layer with the selected paper while preserving its mask"
   }
 }

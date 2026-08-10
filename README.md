@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.5 — Paper Eraser**.
+Current milestone: **P0.6 — Fill / Replace**.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -127,3 +127,16 @@ P0.5 adds layer-safe paper erasing:
 - adding a second finger cancels the uncommitted erase preview and restores the committed mask
 
 Undo/Redo remains intentionally deferred to the dedicated History milestone.
+
+
+## P0.6 fill / replace
+
+P0.6 closes the first paper-material editing loop:
+
+- Fill applies the selected paper across the logical page using the same vector mask model as Paper Brush
+- same-paper Fill appends to the existing top PaperLayer; another paper creates a new top layer only when Fill is invoked
+- Replace top changes the material of the current top PaperLayer while preserving its exact mask history and layer identity
+- replacement uses the new paper asset's default texture transform
+- Fill / Replace remain separate from Erase mode and are structured for the upcoming unified Command History
+
+A formal PaperLayer manager is intentionally deferred; the P0.6 UI targets the top layer while the underlying replacement helper supports any PaperLayer.

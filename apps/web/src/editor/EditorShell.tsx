@@ -13,10 +13,12 @@ import {
 } from '@unbound-journal/editor-renderer-konva';
 import {
   appendPaperMaskStroke,
+  createFillPageStroke,
   createPaperLayerFromAsset,
   isPointVisibleInPaperLayer,
   loadPaperPackIndex,
   loadPaperRuntimeAsset,
+  replacePaperLayerFromAsset,
   type PaperAssetLocale,
   type PaperCatalogEntry,
   type PaperPackIndex,
@@ -236,6 +238,59 @@ export function EditorShell() {
     [updatePaperLayers],
   );
 
+  const fillPage = useCallback(() => {
+    if (!paperAsset || paperToolMode !== 'brush') return;
+    cancelActiveInput();
+    const fillStroke = createFillPageStroke(createId('fill'), LOGICAL_PAGE_SIZE);
+
+    updatePaperLayers((currentLayers) => {
+      const topLayer = currentLayers[currentLayers.length - 1];
+      if (topLayer?.layer.paperVersionId === paperAsset.manifest.paperVersionId) {
+        return [
+          ...currentLayers.slice(0, -1),
+          {
+            ...topLayer,
+            layer: appendPaperMaskStroke(topLayer.layer, fillStroke),
+          },
+        ];
+      }
+
+      return [
+        ...currentLayers,
+        {
+          layer: createPaperLayerFromAsset(
+            createId('paper-layer'),
+            paperAsset,
+            new Date().toISOString(),
+            [fillStroke],
+          ),
+          asset: paperAsset,
+        },
+      ];
+    });
+  }, [cancelActiveInput, paperAsset, paperToolMode, updatePaperLayers]);
+
+  const replaceTopLayer = useCallback(() => {
+    if (!paperAsset || paperToolMode !== 'brush') return;
+    cancelActiveInput();
+
+    updatePaperLayers((currentLayers) => {
+      const topLayer = currentLayers[currentLayers.length - 1];
+      if (!topLayer || topLayer.layer.paperVersionId === paperAsset.manifest.paperVersionId) {
+        return currentLayers;
+      }
+
+      return [
+        ...currentLayers.slice(0, -1),
+        {
+          ...topLayer,
+          layer: replacePaperLayerFromAsset(topLayer.layer, paperAsset),
+          asset: paperAsset,
+        },
+      ];
+    });
+  }, [cancelActiveInput, paperAsset, paperToolMode, updatePaperLayers]);
+
   const clearPage = useCallback(() => {
     cancelActiveInput();
     updatePaperLayers(() => []);
@@ -251,6 +306,14 @@ export function EditorShell() {
   );
 
   const paperReady = Boolean(paperAsset && paperTextureStatus === 'ready' && !paperAssetError);
+  const topPaperLayer = paperLayers[paperLayers.length - 1] ?? null;
+  const canFillPage = Boolean(paperAsset && paperToolMode === 'brush' && !paperAssetError);
+  const canReplaceTopLayer = Boolean(
+    paperAsset &&
+      paperToolMode === 'brush' &&
+      topPaperLayer &&
+      topPaperLayer.layer.paperVersionId !== paperAsset.manifest.paperVersionId,
+  );
   const activeToolSize = paperToolMode === 'brush' ? brushSize : eraserSize;
   const hintKey = paperToolMode === 'brush' ? 'editor.paperBrushHint' : 'editor.paperEraserHint';
 
@@ -390,14 +453,32 @@ export function EditorShell() {
             />
           </label>
 
-          <button
-            type="button"
-            className="paper-brush-panel__clear"
-            disabled={paperLayers.length === 0}
-            onClick={clearPage}
-          >
-            {t('editor.paperBrushClear')}
-          </button>
+          <div className="paper-brush-panel__actions">
+            <button
+              type="button"
+              disabled={!canFillPage}
+              onClick={fillPage}
+              aria-label={t('editor.paperFillPageAria')}
+            >
+              {t('editor.paperFillPage')}
+            </button>
+            <button
+              type="button"
+              disabled={!canReplaceTopLayer}
+              onClick={replaceTopLayer}
+              aria-label={t('editor.paperReplaceTopAria')}
+            >
+              {t('editor.paperReplaceTop')}
+            </button>
+            <button
+              type="button"
+              className="paper-brush-panel__clear"
+              disabled={paperLayers.length === 0}
+              onClick={clearPage}
+            >
+              {t('editor.paperBrushClear')}
+            </button>
+          </div>
         </div>
 
         <div className="viewport-gesture-hint">{t(hintKey)}</div>
