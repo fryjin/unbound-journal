@@ -34,6 +34,13 @@
     "renderModeTile": "タイルパターン",
     "renderModeCover": "フルシート表示",
     "paperTypePattern": "パターンペーパー",
-    "paperTypeFullSheet": "フルシートペーパー"
+    "paperTypeFullSheet": "フルシートペーパー",
+    "paperBrushPanelLabel": "ペーパーブラシ操作",
+    "paperBrushSelected": "選択中のペーパー",
+    "paperBrushReady": "ペーパーを敷けます",
+    "paperBrushSize": "ブラシ",
+    "paperBrushClear": "クリア",
+    "paperBrushHint": "1本指でペーパーを敷く · ピンチ／2本指で移動",
+    "brushLayerStatus": "{{layers}} レイヤー · {{total}} 種のペーパー"
   }
 }

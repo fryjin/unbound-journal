@@ -34,6 +34,13 @@
     "renderModeTile": "Tile pattern",
     "renderModeCover": "Full-sheet cover",
     "paperTypePattern": "Pattern papers",
-    "paperTypeFullSheet": "Full-sheet papers"
+    "paperTypeFullSheet": "Full-sheet papers",
+    "paperBrushPanelLabel": "Paper brush controls",
+    "paperBrushSelected": "Selected paper",
+    "paperBrushReady": "Ready to lay paper",
+    "paperBrushSize": "Brush",
+    "paperBrushClear": "Clear",
+    "paperBrushHint": "Swipe with one finger to lay paper · pinch or use two fingers to move",
+    "brushLayerStatus": "{{layers}} layers · {{total}} papers available"
   }
 }

@@ -1,12 +1,18 @@
 import { LOGICAL_PAGE_SIZE } from '@unbound-journal/editor-core';
 import {
   PageViewport,
+  PaperBrushPreview,
   PaperStack,
+  type PageInputEvent,
   type PageViewportHandle,
   type PageViewportState,
+  type PaperBrushPreviewHandle,
+  type PaperRenderLayer,
   type PaperTextureLoadStatus,
 } from '@unbound-journal/editor-renderer-konva';
 import {
+  appendPaperMaskStroke,
+  createPaperLayerFromAsset,
   loadPaperPackIndex,
   loadPaperRuntimeAsset,
   type PaperAssetLocale,
@@ -14,14 +20,26 @@ import {
   type PaperPackIndex,
   type PaperRuntimeAsset,
 } from '@unbound-journal/paper-engine';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const tools = ['paper', 'media', 'text', 'draw'] as const;
+const DEFAULT_BRUSH_SIZE = 180;
+const MIN_BRUSH_SIZE = 60;
+const MAX_BRUSH_SIZE = 360;
+
+function createId(prefix: string) {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return `${prefix}_${crypto.randomUUID()}`;
+  }
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
 
 export function EditorShell() {
   const { i18n, t } = useTranslation();
   const viewportRef = useRef<PageViewportHandle | null>(null);
+  const brushPreviewRef = useRef<PaperBrushPreviewHandle | null>(null);
+  const strokeAssetRef = useRef<PaperRuntimeAsset | null>(null);
   const [viewportState, setViewportState] = useState<PageViewportState | null>(null);
   const [paperPack, setPaperPack] = useState<PaperPackIndex | null>(null);
   const [paperPackError, setPaperPackError] = useState(false);
@@ -29,6 +47,8 @@ export function EditorShell() {
   const [paperAsset, setPaperAsset] = useState<PaperRuntimeAsset | null>(null);
   const [paperAssetError, setPaperAssetError] = useState(false);
   const [paperTextureStatus, setPaperTextureStatus] = useState<PaperTextureLoadStatus>('idle');
+  const [brushSize, setBrushSize] = useState(DEFAULT_BRUSH_SIZE);
+  const [paperLayers, setPaperLayers] = useState<PaperRenderLayer[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -88,6 +108,73 @@ export function EditorShell() {
 
   const selectedTitle = selectedEntry?.title[locale] ?? selectedEntry?.title.en ?? '';
 
+  const cancelActiveStroke = useCallback(() => {
+    brushPreviewRef.current?.cancelStroke();
+    strokeAssetRef.current = null;
+  }, []);
+
+  const handlePageInputStart = useCallback(
+    (event: PageInputEvent) => {
+      if (!event.insidePage || !paperAsset) return;
+      const started = brushPreviewRef.current?.beginStroke(event.pagePoint, brushSize) ?? false;
+      strokeAssetRef.current = started ? paperAsset : null;
+    },
+    [brushSize, paperAsset],
+  );
+
+  const handlePageInputMove = useCallback((event: PageInputEvent) => {
+    if (!strokeAssetRef.current) return;
+    brushPreviewRef.current?.appendPoint(event.pagePoint);
+  }, []);
+
+  const handlePageInputEnd = useCallback((event: PageInputEvent | null) => {
+    const strokeAsset = strokeAssetRef.current;
+    if (!strokeAsset) return;
+
+    if (event) brushPreviewRef.current?.appendPoint(event.pagePoint);
+    const stroke = brushPreviewRef.current?.finishStroke(createId('stroke')) ?? null;
+    strokeAssetRef.current = null;
+    if (!stroke) {
+      brushPreviewRef.current?.clearPreview();
+      return;
+    }
+
+    setPaperLayers((currentLayers) => {
+      const topLayer = currentLayers[currentLayers.length - 1];
+      if (topLayer?.layer.paperVersionId === strokeAsset.manifest.paperVersionId) {
+        return [
+          ...currentLayers.slice(0, -1),
+          {
+            ...topLayer,
+            layer: appendPaperMaskStroke(topLayer.layer, stroke),
+          },
+        ];
+      }
+
+      return [
+        ...currentLayers,
+        {
+          layer: createPaperLayerFromAsset(
+            createId('paper-layer'),
+            strokeAsset,
+            new Date().toISOString(),
+            [stroke],
+          ),
+          asset: strokeAsset,
+        },
+      ];
+    });
+
+    requestAnimationFrame(() => brushPreviewRef.current?.clearPreview());
+  }, []);
+
+  const clearPage = useCallback(() => {
+    cancelActiveStroke();
+    setPaperLayers([]);
+  }, [cancelActiveStroke]);
+
+  const paperReady = Boolean(paperAsset && paperTextureStatus === 'ready' && !paperAssetError);
+
   return (
     <section className="editor-shell" aria-label={t('editor.canvasLabel')}>
       <div className="viewport-frame">
@@ -95,13 +182,17 @@ export function EditorShell() {
           ref={viewportRef}
           ariaLabel={t('editor.viewportLabel')}
           onViewportChange={setViewportState}
+          onPageInputStart={handlePageInputStart}
+          onPageInputMove={handlePageInputMove}
+          onPageInputEnd={handlePageInputEnd}
+          onPageInputCancel={cancelActiveStroke}
         >
-          {paperAsset ? (
-            <PaperStack
-              layers={[{ id: 'renderer-preview', asset: paperAsset }]}
-              onLayerLoadStateChange={(_layerId, status) => setPaperTextureStatus(status)}
-            />
-          ) : null}
+          <PaperStack layers={paperLayers} />
+          <PaperBrushPreview
+            ref={brushPreviewRef}
+            asset={paperAsset}
+            onLoadStateChange={setPaperTextureStatus}
+          />
         </PageViewport>
 
         <div className="viewport-hud" aria-live="polite">
@@ -111,7 +202,10 @@ export function EditorShell() {
             </strong>
             <span>
               {paperPack
-                ? t('editor.assetPackShort', { total: paperPack.counts.total })
+                ? t('editor.brushLayerStatus', {
+                    layers: paperLayers.length,
+                    total: paperPack.counts.total,
+                  })
                 : paperPackError
                   ? t('editor.assetPackErrorShort')
                   : t('editor.assetPackLoadingShort')}
@@ -127,23 +221,26 @@ export function EditorShell() {
           </button>
         </div>
 
-        <div className="paper-renderer-preview" aria-label={t('editor.paperPreviewLabel')}>
-          <div className="paper-renderer-preview__meta">
-            <span>{t('editor.paperPreview')}</span>
+        <div className="paper-brush-panel" aria-label={t('editor.paperBrushPanelLabel')}>
+          <div className="paper-brush-panel__paper">
+            <span>{t('editor.paperBrushSelected')}</span>
             <strong>{selectedTitle || t('editor.paperPreviewLoading')}</strong>
-            {selectedEntry ? (
-              <small>
-                {selectedEntry.renderMode === 'tile'
-                  ? t('editor.renderModeTile')
-                  : t('editor.renderModeCover')}
-              </small>
-            ) : null}
+            <small className={paperReady ? 'is-ready' : ''}>
+              {paperAssetError || paperTextureStatus === 'error'
+                ? t('editor.paperPreviewError')
+                : paperReady
+                  ? t('editor.paperBrushReady')
+                  : t('editor.paperPreviewLoading')}
+            </small>
           </div>
 
           {paperPack ? (
             <select
               value={selectedManifestUrl ?? ''}
-              onChange={(event) => setSelectedManifestUrl(event.target.value)}
+              onChange={(event) => {
+                cancelActiveStroke();
+                setSelectedManifestUrl(event.target.value);
+              }}
               aria-label={t('editor.paperPreviewSelect')}
             >
               <optgroup label={t('editor.paperTypePattern')}>
@@ -163,16 +260,31 @@ export function EditorShell() {
             </select>
           ) : null}
 
-          <span className="paper-renderer-preview__state" role="status">
-            {paperAssetError || paperTextureStatus === 'error'
-              ? t('editor.paperPreviewError')
-              : paperTextureStatus === 'ready'
-                ? t('editor.paperPreviewReady')
-                : t('editor.paperPreviewLoading')}
-          </span>
+          <label className="paper-brush-panel__size">
+            <span>
+              {t('editor.paperBrushSize')} <strong>{brushSize}</strong>
+            </span>
+            <input
+              type="range"
+              min={MIN_BRUSH_SIZE}
+              max={MAX_BRUSH_SIZE}
+              step={10}
+              value={brushSize}
+              onChange={(event) => setBrushSize(Number(event.target.value))}
+            />
+          </label>
+
+          <button
+            type="button"
+            className="paper-brush-panel__clear"
+            disabled={paperLayers.length === 0}
+            onClick={clearPage}
+          >
+            {t('editor.paperBrushClear')}
+          </button>
         </div>
 
-        <div className="viewport-gesture-hint">{t('editor.viewportHint')}</div>
+        <div className="viewport-gesture-hint">{t('editor.paperBrushHint')}</div>
       </div>
 
       <nav className="tool-dock" aria-label={t('editor.toolsLabel')}>

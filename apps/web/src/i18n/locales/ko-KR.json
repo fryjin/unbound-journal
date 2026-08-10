@@ -34,6 +34,13 @@
     "renderModeTile": "타일 패턴",
     "renderModeCover": "풀시트 커버",
     "paperTypePattern": "패턴 페이퍼",
-    "paperTypeFullSheet": "풀시트 페이퍼"
+    "paperTypeFullSheet": "풀시트 페이퍼",
+    "paperBrushPanelLabel": "페이퍼 브러시 컨트롤",
+    "paperBrushSelected": "선택한 페이퍼",
+    "paperBrushReady": "페이퍼를 놓을 준비됨",
+    "paperBrushSize": "브러시",
+    "paperBrushClear": "지우기",
+    "paperBrushHint": "한 손가락으로 페이퍼 놓기 · 핀치/두 손가락으로 이동",
+    "brushLayerStatus": "레이어 {{layers}}개 · 페이퍼 {{total}}종"
   }
 }

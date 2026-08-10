@@ -34,6 +34,13 @@
     "renderModeTile": "平鋪 Pattern",
     "renderModeCover": "Full-sheet 覆蓋",
     "paperTypePattern": "Pattern 紙張",
-    "paperTypeFullSheet": "Full-sheet 紙張"
+    "paperTypeFullSheet": "Full-sheet 紙張",
+    "paperBrushPanelLabel": "紙張筆刷控制",
+    "paperBrushSelected": "目前紙張",
+    "paperBrushReady": "可開始鋪紙",
+    "paperBrushSize": "筆刷",
+    "paperBrushClear": "清空",
+    "paperBrushHint": "單指滑動鋪紙 · 雙指縮放或移動畫面",
+    "brushLayerStatus": "{{layers}} 個紙張圖層 · 可用 {{total}} 款紙張"
   }
 }

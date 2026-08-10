@@ -1,10 +1,11 @@
 import { LOGICAL_PAGE_SIZE, type Size } from '@unbound-journal/editor-core';
-import type { PaperRuntimeAsset } from '@unbound-journal/paper-engine';
+import type { PaperLayer, PaperRuntimeAsset } from '@unbound-journal/paper-engine';
 import { Group } from 'react-konva';
-import { PaperTexture, type PaperTextureLoadStatus } from './PaperTexture';
+import { PaperMaskedTexture } from './PaperMaskedTexture';
+import type { PaperTextureLoadStatus } from './PaperTexture';
 
 export interface PaperRenderLayer {
-  id: string;
+  layer: PaperLayer;
   asset: PaperRuntimeAsset;
   visible?: boolean;
 }
@@ -16,9 +17,9 @@ export interface PaperStackProps {
 }
 
 /**
- * Renderer-only ordered paper stack. Layers are drawn bottom → top.
- * P0.3 renders complete textures; P0.4 will supply per-layer mask compositing
- * without changing the PaperRuntimeAsset → texture rendering contract.
+ * Ordered paper stack, bottom → top.
+ * Logical source remains Texture + vector MaskStroke[]; each layer creates an
+ * isolated raster cache so future erase operations cannot punch through lower layers.
  */
 export function PaperStack({
   layers,
@@ -27,11 +28,13 @@ export function PaperStack({
 }: PaperStackProps) {
   return (
     <Group listening={false}>
-      {layers.map((layer) =>
-        layer.visible === false ? null : (
+      {layers.map(({ layer, asset, visible }) =>
+        visible === false ? null : (
           <Group key={layer.id} listening={false}>
-            <PaperTexture
-              asset={layer.asset}
+            <PaperMaskedTexture
+              asset={asset}
+              maskStrokes={layer.maskStrokes}
+              texture={layer.texture}
               pageSize={pageSize}
               onLoadStateChange={(status) => onLayerLoadStateChange?.(layer.id, status)}
             />

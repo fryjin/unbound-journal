@@ -3,7 +3,7 @@
 ## Current
 
 - Project codename / repository name: `unbound-journal`
-- Milestone: `P0.3 — Paper Renderer`
+- Milestone: `P0.4 — Paper Brush`
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
 
@@ -61,6 +61,20 @@
 - Localized paper preview names for Tier-1 and Tier-2 locales
 - Renderer keeps texture rendering independent from future Paper Mask implementation
 
+## Completed in P0.4
+
+- Single-finger Paper Brush input mapped through logical page coordinates
+- Paper selection is non-destructive and does not create empty layers
+- First completed stroke creates a PaperLayer only when needed
+- Same selected top paper receives additional mask strokes
+- Switching paper creates a new top layer on the next stroke
+- Vector PaperMaskStroke remains the document source of truth
+- Isolated per-layer Texture + Mask raster cache
+- Mutable renderer-only active stroke preview
+- Two-finger gesture cancels active paint and suppresses accidental restart
+- Adjustable hard round brush (60–360 logical units)
+- Desktop mouse painting for development QA
+
 ## Starter pack quality boundary
 
 The P0.1 assets are development fixtures generated from the model image-generation workflow. They intentionally validate asset diversity and runtime contracts; they are not final marketplace-quality creator assets.
@@ -69,7 +83,7 @@ Future official or creator assets will enter through the same PaperRuntimeManife
 
 ## Environment limitation
 
-The original generation environment could not resolve all public npm packages through its configured registry. P0.2 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
+The original generation environment could not resolve all public npm packages through its configured registry. P0.4 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
 
 The dependency-free paper-pack validator remains available through:
 
@@ -79,11 +93,10 @@ npm run papers:validate
 
 ## Next
 
-`P0.4 — Paper Brush`
+`P0.5 — Paper Eraser`
 
-1. Introduce per-PaperLayer masks
-2. Convert single-finger page input into logical-page stroke points
-3. Paint the currently selected paper into its mask
-4. Create a new PaperLayer only on first paint / fill action
-5. Keep Pattern texture coordinates stable while the mask grows
-6. Preserve two-finger viewport gestures without creating strokes
+1. Detect the top visible PaperLayer under the eraser start point
+2. Lock one erase gesture to exactly one PaperLayer
+3. Append erase mask strokes to the locked layer
+4. Reveal the immediate lower paper without punching through multiple layers
+5. Keep Undo/Redo integration deferred to the dedicated History milestone

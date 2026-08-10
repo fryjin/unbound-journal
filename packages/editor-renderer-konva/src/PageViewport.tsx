@@ -35,6 +35,15 @@ type TouchEventLike = {
   evt: TouchEvent;
 };
 
+type MouseEventLike = {
+  evt: MouseEvent;
+  target: {
+    getStage: () => {
+      getPointerPosition: () => Point | null;
+    } | null;
+  };
+};
+
 type WheelEventLike = {
   evt: WheelEvent;
   target: {
@@ -43,6 +52,13 @@ type WheelEventLike = {
     } | null;
   };
 };
+
+export type PageInputEvent = Readonly<{
+  pagePoint: Point;
+  screenPoint: Point;
+  insidePage: boolean;
+  source: 'touch' | 'mouse';
+}>;
 
 export type PageViewportState = Readonly<{
   viewportSize: Size;
@@ -64,6 +80,10 @@ export type PageViewportProps = Readonly<{
   children?: ReactNode;
   className?: string;
   onViewportChange?: (state: PageViewportState) => void;
+  onPageInputStart?: (event: PageInputEvent) => void;
+  onPageInputMove?: (event: PageInputEvent) => void;
+  onPageInputEnd?: (event: PageInputEvent | null) => void;
+  onPageInputCancel?: () => void;
 }>;
 
 function getTouchPoint(touch: Touch, bounds: DOMRect): Point {
@@ -89,13 +109,38 @@ function getDevicePixelRatio(): number {
   return Math.max(1, window.devicePixelRatio || 1);
 }
 
+function isInsideLogicalPage(point: Point): boolean {
+  return (
+    point.x >= 0 &&
+    point.y >= 0 &&
+    point.x <= LOGICAL_PAGE_SIZE.width &&
+    point.y <= LOGICAL_PAGE_SIZE.height
+  );
+}
+
 export const PageViewport = forwardRef<PageViewportHandle, PageViewportProps>(
-  function PageViewport({ ariaLabel, children, className, onViewportChange }, forwardedRef) {
+  function PageViewport(
+    {
+      ariaLabel,
+      children,
+      className,
+      onViewportChange,
+      onPageInputStart,
+      onPageInputMove,
+      onPageInputEnd,
+      onPageInputCancel,
+    },
+    forwardedRef,
+  ) {
     const hostRef = useRef<HTMLDivElement | null>(null);
     const viewportSizeRef = useRef<Size>(EMPTY_SIZE);
     const fitScaleRef = useRef(1);
     const transformRef = useRef<ViewportTransform>({ scale: 1, offsetX: 0, offsetY: 0 });
     const gestureRef = useRef<GestureSnapshot | null>(null);
+    const singleTouchActiveRef = useRef(false);
+    const suppressSingleTouchRef = useRef(false);
+    const mouseActiveRef = useRef(false);
+    const lastTouchInputAtRef = useRef(0);
 
     const [viewportSize, setViewportSize] = useState<Size>(EMPTY_SIZE);
     const [transform, setTransform] = useState<ViewportTransform>(transformRef.current);
@@ -116,6 +161,16 @@ export const PageViewport = forwardRef<PageViewportHandle, PageViewportProps>(
       },
       [onViewportChange],
     );
+
+    const makePageInputEvent = useCallback((screenPoint: Point, source: 'touch' | 'mouse') => {
+      const pagePoint = screenToPage(screenPoint, transformRef.current);
+      return {
+        pagePoint,
+        screenPoint,
+        insidePage: isInsideLogicalPage(pagePoint),
+        source,
+      } satisfies PageInputEvent;
+    }, []);
 
     const fitToPage = useCallback(() => {
       const size = viewportSizeRef.current;
@@ -205,6 +260,12 @@ export const PageViewport = forwardRef<PageViewportHandle, PageViewportProps>(
       return () => observer.disconnect();
     }, [publishTransform]);
 
+    const resolveTouchPoint = useCallback((touch: Touch) => {
+      const host = hostRef.current;
+      if (!host) return null;
+      return getTouchPoint(touch, host.getBoundingClientRect());
+    }, []);
+
     const resolveTouchPair = useCallback((event: TouchEventLike) => {
       const host = hostRef.current;
       if (!host || event.evt.touches.length < 2) return null;
@@ -223,59 +284,157 @@ export const PageViewport = forwardRef<PageViewportHandle, PageViewportProps>(
       };
     }, []);
 
+    const cancelSingleTouch = useCallback(() => {
+      if (!singleTouchActiveRef.current) return;
+      singleTouchActiveRef.current = false;
+      onPageInputCancel?.();
+    }, [onPageInputCancel]);
+
     const handleTouchStart = useCallback(
       (event: TouchEventLike) => {
-        if (event.evt.touches.length < 2) return;
+        lastTouchInputAtRef.current = Date.now();
         if (event.evt.cancelable) event.evt.preventDefault();
-        gestureRef.current = resolveTouchPair(event);
+
+        if (event.evt.touches.length >= 2) {
+          cancelSingleTouch();
+          suppressSingleTouchRef.current = true;
+          gestureRef.current = resolveTouchPair(event);
+          return;
+        }
+
+        if (event.evt.touches.length !== 1 || suppressSingleTouchRef.current) return;
+        const touch = event.evt.touches.item(0);
+        if (!touch) return;
+        const screenPoint = resolveTouchPoint(touch);
+        if (!screenPoint) return;
+        const pageEvent = makePageInputEvent(screenPoint, 'touch');
+        if (!pageEvent.insidePage) return;
+        singleTouchActiveRef.current = true;
+        onPageInputStart?.(pageEvent);
       },
-      [resolveTouchPair],
+      [cancelSingleTouch, makePageInputEvent, onPageInputStart, resolveTouchPair, resolveTouchPoint],
     );
 
     const handleTouchMove = useCallback(
       (event: TouchEventLike) => {
-        if (event.evt.touches.length < 2) return;
+        lastTouchInputAtRef.current = Date.now();
         if (event.evt.cancelable) event.evt.preventDefault();
 
-        const current = resolveTouchPair(event);
-        const previous = gestureRef.current;
-        const size = viewportSizeRef.current;
-        if (!current || !previous || size.width <= 0 || size.height <= 0) {
+        if (event.evt.touches.length >= 2) {
+          cancelSingleTouch();
+          suppressSingleTouchRef.current = true;
+          const current = resolveTouchPair(event);
+          const previous = gestureRef.current;
+          const size = viewportSizeRef.current;
+          if (!current || !previous || size.width <= 0 || size.height <= 0) {
+            gestureRef.current = current;
+            return;
+          }
+
+          const currentTransform = transformRef.current;
+          const fitScale = fitScaleRef.current;
+          const distanceRatio = previous.distance > 0 ? current.distance / previous.distance : 1;
+          const targetScale = Math.min(
+            fitScale * MAX_VIEWPORT_ZOOM,
+            Math.max(fitScale, currentTransform.scale * distanceRatio),
+          );
+
+          const pagePointAtPreviousCenter = screenToPage(previous.center, currentTransform);
+          const nextTransform = clampViewportTransform(
+            {
+              scale: targetScale,
+              offsetX: current.center.x - pagePointAtPreviousCenter.x * targetScale,
+              offsetY: current.center.y - pagePointAtPreviousCenter.y * targetScale,
+            },
+            LOGICAL_PAGE_SIZE,
+            size,
+            DEFAULT_VIEWPORT_EDGE_MARGIN,
+          );
+
+          publishTransform(nextTransform);
           gestureRef.current = current;
           return;
         }
 
-        const currentTransform = transformRef.current;
-        const fitScale = fitScaleRef.current;
-        const distanceRatio = previous.distance > 0 ? current.distance / previous.distance : 1;
-        const targetScale = Math.min(
-          fitScale * MAX_VIEWPORT_ZOOM,
-          Math.max(fitScale, currentTransform.scale * distanceRatio),
-        );
-
-        const pagePointAtPreviousCenter = screenToPage(previous.center, currentTransform);
-        const nextTransform = clampViewportTransform(
-          {
-            scale: targetScale,
-            offsetX: current.center.x - pagePointAtPreviousCenter.x * targetScale,
-            offsetY: current.center.y - pagePointAtPreviousCenter.y * targetScale,
-          },
-          LOGICAL_PAGE_SIZE,
-          size,
-          DEFAULT_VIEWPORT_EDGE_MARGIN,
-        );
-
-        publishTransform(nextTransform);
-        gestureRef.current = current;
+        if (
+          event.evt.touches.length === 1 &&
+          singleTouchActiveRef.current &&
+          !suppressSingleTouchRef.current
+        ) {
+          const touch = event.evt.touches.item(0);
+          if (!touch) return;
+          const screenPoint = resolveTouchPoint(touch);
+          if (!screenPoint) return;
+          onPageInputMove?.(makePageInputEvent(screenPoint, 'touch'));
+        }
       },
-      [publishTransform, resolveTouchPair],
+      [cancelSingleTouch, makePageInputEvent, onPageInputMove, publishTransform, resolveTouchPair, resolveTouchPoint],
     );
 
     const handleTouchEnd = useCallback(
       (event: TouchEventLike) => {
-        gestureRef.current = event.evt.touches.length >= 2 ? resolveTouchPair(event) : null;
+        lastTouchInputAtRef.current = Date.now();
+        if (event.evt.cancelable) event.evt.preventDefault();
+
+        if (suppressSingleTouchRef.current || gestureRef.current) {
+          gestureRef.current = event.evt.touches.length >= 2 ? resolveTouchPair(event) : null;
+          if (event.evt.touches.length === 0) suppressSingleTouchRef.current = false;
+          return;
+        }
+
+        if (!singleTouchActiveRef.current) return;
+        if (event.evt.touches.length > 0) return;
+        singleTouchActiveRef.current = false;
+        const changedTouch = event.evt.changedTouches.item(0);
+        const screenPoint = changedTouch ? resolveTouchPoint(changedTouch) : null;
+        onPageInputEnd?.(screenPoint ? makePageInputEvent(screenPoint, 'touch') : null);
       },
-      [resolveTouchPair],
+      [makePageInputEvent, onPageInputEnd, resolveTouchPair, resolveTouchPoint],
+    );
+
+    const handleTouchCancel = useCallback(() => {
+      lastTouchInputAtRef.current = Date.now();
+      gestureRef.current = null;
+      suppressSingleTouchRef.current = false;
+      cancelSingleTouch();
+    }, [cancelSingleTouch]);
+
+    const resolveMouseEvent = useCallback(
+      (event: MouseEventLike) => {
+        const pointer = event.target.getStage()?.getPointerPosition();
+        return pointer ? makePageInputEvent(pointer, 'mouse') : null;
+      },
+      [makePageInputEvent],
+    );
+
+    const handleMouseDown = useCallback(
+      (event: MouseEventLike) => {
+        if (Date.now() - lastTouchInputAtRef.current < 800) return;
+        if (event.evt.button !== 0) return;
+        const pageEvent = resolveMouseEvent(event);
+        if (!pageEvent?.insidePage) return;
+        mouseActiveRef.current = true;
+        onPageInputStart?.(pageEvent);
+      },
+      [onPageInputStart, resolveMouseEvent],
+    );
+
+    const handleMouseMove = useCallback(
+      (event: MouseEventLike) => {
+        if (!mouseActiveRef.current) return;
+        const pageEvent = resolveMouseEvent(event);
+        if (pageEvent) onPageInputMove?.(pageEvent);
+      },
+      [onPageInputMove, resolveMouseEvent],
+    );
+
+    const finishMouseInput = useCallback(
+      (event: MouseEventLike | null) => {
+        if (!mouseActiveRef.current) return;
+        mouseActiveRef.current = false;
+        onPageInputEnd?.(event ? resolveMouseEvent(event) : null);
+      },
+      [onPageInputEnd, resolveMouseEvent],
     );
 
     const handleWheel = useCallback(
@@ -326,6 +485,11 @@ export const PageViewport = forwardRef<PageViewportHandle, PageViewportProps>(
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchCancel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={(event) => finishMouseInput(event)}
+            onMouseLeave={(event) => finishMouseInput(event)}
             onWheel={handleWheel}
           >
             <Layer listening={false}>

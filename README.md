@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.3 — Paper Renderer**.
+Current milestone: **P0.4 — Paper Brush**.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -98,3 +98,17 @@ P0.3 connects the Paper Runtime Contract to the Konva page:
 - a development-only selector can preview all 40 fixtures
 
 The preview selector is a QA tool, not the final paper-application interaction. P0.4 introduces actual Paper Brush masks.
+
+## P0.4 paper brush
+
+P0.4 turns paper rendering into the first real creation interaction:
+
+- selecting a paper does not alter the document
+- a PaperLayer is created only when the first stroke is committed
+- paper visibility is driven by vector `PaperMaskStroke` data
+- active strokes use a renderer-only mutable preview instead of writing document state on every move
+- Pattern / Full-sheet textures stay fixed in page coordinates while the mask grows
+- two-finger viewport gestures cancel and suppress single-finger painting
+- switching paper creates a new top layer only on the next stroke
+
+The committed renderer uses an isolated per-layer raster cache, preparing P0.5 erasing without allowing one layer's compositing operation to affect lower layers.
