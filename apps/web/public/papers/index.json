@@ -1,0 +1,614 @@
+{
+  "schemaVersion": 1,
+  "packId": "unbound-journal-dev-starter-v1",
+  "generatedAt": "2026-08-10T12:00:00+08:00",
+  "sourceKind": "model-generated",
+  "developmentFixture": true,
+  "counts": {
+    "pattern": 24,
+    "full-sheet": 16,
+    "total": 40
+  },
+  "papers": [
+    {
+      "manifest": "/papers/pattern/blue-grid/manifest.json",
+      "paperTemplateId": "paper_blue_grid",
+      "paperVersionId": "paper_blue_grid_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Blue Grid",
+        "ja-JP": "ブルーグリッド",
+        "ko-KR": "블루 그리드",
+        "zh-Hant": "藍色方格"
+      },
+      "colorFamily": "blue",
+      "styleFamily": "grid"
+    },
+    {
+      "manifest": "/papers/pattern/light-grid/manifest.json",
+      "paperTemplateId": "paper_light_grid",
+      "paperVersionId": "paper_light_grid_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Light Blue Grid",
+        "ja-JP": "ライトブルーグリッド",
+        "ko-KR": "라이트 블루 그리드",
+        "zh-Hant": "淺藍方格"
+      },
+      "colorFamily": "blue",
+      "styleFamily": "grid"
+    },
+    {
+      "manifest": "/papers/pattern/dot-grid/manifest.json",
+      "paperTemplateId": "paper_dot_grid",
+      "paperVersionId": "paper_dot_grid_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Warm Dot Grid",
+        "ja-JP": "ウォームドット",
+        "ko-KR": "웜 도트",
+        "zh-Hant": "暖色點陣"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "dot"
+    },
+    {
+      "manifest": "/papers/pattern/isometric-grid/manifest.json",
+      "paperTemplateId": "paper_isometric_grid",
+      "paperVersionId": "paper_isometric_grid_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Isometric Grid",
+        "ja-JP": "アイソメグリッド",
+        "ko-KR": "아이소메트릭 그리드",
+        "zh-Hant": "等角網格"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "geometric"
+    },
+    {
+      "manifest": "/papers/pattern/ruled-blue/manifest.json",
+      "paperTemplateId": "paper_ruled_blue",
+      "paperVersionId": "paper_ruled_blue_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Blue Ruled",
+        "ja-JP": "ブルー罫線",
+        "ko-KR": "블루 라인",
+        "zh-Hant": "藍色橫線"
+      },
+      "colorFamily": "blue",
+      "styleFamily": "ruled"
+    },
+    {
+      "manifest": "/papers/pattern/ruled-gray/manifest.json",
+      "paperTemplateId": "paper_ruled_gray",
+      "paperVersionId": "paper_ruled_gray_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Soft Gray Ruled",
+        "ja-JP": "グレー罫線",
+        "ko-KR": "소프트 그레이 라인",
+        "zh-Hant": "柔灰橫線"
+      },
+      "colorFamily": "gray",
+      "styleFamily": "ruled"
+    },
+    {
+      "manifest": "/papers/pattern/cornell/manifest.json",
+      "paperTemplateId": "paper_cornell",
+      "paperVersionId": "paper_cornell_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Cream Cornell",
+        "ja-JP": "クリーム・コーネル",
+        "ko-KR": "크림 코넬",
+        "zh-Hant": "奶油康奈爾"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "layout"
+    },
+    {
+      "manifest": "/papers/pattern/ledger/manifest.json",
+      "paperTemplateId": "paper_ledger",
+      "paperVersionId": "paper_ledger_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Vintage Ledger",
+        "ja-JP": "ヴィンテージ台帳",
+        "ko-KR": "빈티지 원장",
+        "zh-Hant": "復古帳簿"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "ledger"
+    },
+    {
+      "manifest": "/papers/pattern/floral-blue/manifest.json",
+      "paperTemplateId": "paper_floral_blue",
+      "paperVersionId": "paper_floral_blue_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Blue Floral",
+        "ja-JP": "ブルーフローラル",
+        "ko-KR": "블루 플로럴",
+        "zh-Hant": "藍色花卉"
+      },
+      "colorFamily": "blue",
+      "styleFamily": "floral"
+    },
+    {
+      "manifest": "/papers/pattern/floral-pink/manifest.json",
+      "paperTemplateId": "paper_floral_pink",
+      "paperVersionId": "paper_floral_pink_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Pink Floral",
+        "ja-JP": "ピンクフローラル",
+        "ko-KR": "핑크 플로럴",
+        "zh-Hant": "粉色花卉"
+      },
+      "colorFamily": "pink",
+      "styleFamily": "floral"
+    },
+    {
+      "manifest": "/papers/pattern/floral-vintage/manifest.json",
+      "paperTemplateId": "paper_floral_vintage",
+      "paperVersionId": "paper_floral_vintage_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Vintage Floral",
+        "ja-JP": "ヴィンテージフローラル",
+        "ko-KR": "빈티지 플로럴",
+        "zh-Hant": "復古花卉"
+      },
+      "colorFamily": "vintage",
+      "styleFamily": "floral"
+    },
+    {
+      "manifest": "/papers/pattern/leaves-green/manifest.json",
+      "paperTemplateId": "paper_leaves_green",
+      "paperVersionId": "paper_leaves_green_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Green Leaves",
+        "ja-JP": "グリーンリーフ",
+        "ko-KR": "그린 리프",
+        "zh-Hant": "綠葉"
+      },
+      "colorFamily": "green",
+      "styleFamily": "botanical"
+    },
+    {
+      "manifest": "/papers/pattern/tiny-flower/manifest.json",
+      "paperTemplateId": "paper_tiny_flower",
+      "paperVersionId": "paper_tiny_flower_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Tiny Flowers",
+        "ja-JP": "小花柄",
+        "ko-KR": "미니 플라워",
+        "zh-Hant": "細碎小花"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "floral"
+    },
+    {
+      "manifest": "/papers/pattern/ditzy-floral/manifest.json",
+      "paperTemplateId": "paper_ditzy_floral",
+      "paperVersionId": "paper_ditzy_floral_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Ditzy Floral",
+        "ja-JP": "ディッツィーフローラル",
+        "ko-KR": "디치 플로럴",
+        "zh-Hant": "碎花"
+      },
+      "colorFamily": "pink",
+      "styleFamily": "floral"
+    },
+    {
+      "manifest": "/papers/pattern/geometric-gold/manifest.json",
+      "paperTemplateId": "paper_geometric_gold",
+      "paperVersionId": "paper_geometric_gold_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Gold Geometry",
+        "ja-JP": "ゴールドジオメトリ",
+        "ko-KR": "골드 지오메트리",
+        "zh-Hant": "金色幾何"
+      },
+      "colorFamily": "gold",
+      "styleFamily": "geometric"
+    },
+    {
+      "manifest": "/papers/pattern/geometric-blue/manifest.json",
+      "paperTemplateId": "paper_geometric_blue",
+      "paperVersionId": "paper_geometric_blue_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Blue Geometry",
+        "ja-JP": "ブルージオメトリ",
+        "ko-KR": "블루 지오메트리",
+        "zh-Hant": "藍色幾何"
+      },
+      "colorFamily": "blue",
+      "styleFamily": "geometric"
+    },
+    {
+      "manifest": "/papers/pattern/stripes-navy/manifest.json",
+      "paperTemplateId": "paper_stripes_navy",
+      "paperVersionId": "paper_stripes_navy_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Navy Stripes",
+        "ja-JP": "ネイビーストライプ",
+        "ko-KR": "네이비 스트라이프",
+        "zh-Hant": "海軍藍條紋"
+      },
+      "colorFamily": "navy",
+      "styleFamily": "stripe"
+    },
+    {
+      "manifest": "/papers/pattern/stripes-pastel/manifest.json",
+      "paperTemplateId": "paper_stripes_pastel",
+      "paperVersionId": "paper_stripes_pastel_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Pastel Stripes",
+        "ja-JP": "パステルストライプ",
+        "ko-KR": "파스텔 스트라이프",
+        "zh-Hant": "粉彩條紋"
+      },
+      "colorFamily": "pastel",
+      "styleFamily": "stripe"
+    },
+    {
+      "manifest": "/papers/pattern/gingham-blue/manifest.json",
+      "paperTemplateId": "paper_gingham_blue",
+      "paperVersionId": "paper_gingham_blue_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Blue Gingham",
+        "ja-JP": "ブルーギンガム",
+        "ko-KR": "블루 깅엄",
+        "zh-Hant": "藍色格紋"
+      },
+      "colorFamily": "blue",
+      "styleFamily": "gingham"
+    },
+    {
+      "manifest": "/papers/pattern/gingham-red/manifest.json",
+      "paperTemplateId": "paper_gingham_red",
+      "paperVersionId": "paper_gingham_red_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Red Gingham",
+        "ja-JP": "レッドギンガム",
+        "ko-KR": "레드 깅엄",
+        "zh-Hant": "紅色格紋"
+      },
+      "colorFamily": "red",
+      "styleFamily": "gingham"
+    },
+    {
+      "manifest": "/papers/pattern/herringbone/manifest.json",
+      "paperTemplateId": "paper_herringbone",
+      "paperVersionId": "paper_herringbone_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Cream Herringbone",
+        "ja-JP": "クリームヘリンボーン",
+        "ko-KR": "크림 헤링본",
+        "zh-Hant": "奶油人字紋"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "herringbone"
+    },
+    {
+      "manifest": "/papers/pattern/linen-beige/manifest.json",
+      "paperTemplateId": "paper_linen_beige",
+      "paperVersionId": "paper_linen_beige_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Beige Linen",
+        "ja-JP": "ベージュリネン",
+        "ko-KR": "베이지 린넨",
+        "zh-Hant": "米色亞麻"
+      },
+      "colorFamily": "beige",
+      "styleFamily": "fabric"
+    },
+    {
+      "manifest": "/papers/pattern/fabric-gray/manifest.json",
+      "paperTemplateId": "paper_fabric_gray",
+      "paperVersionId": "paper_fabric_gray_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Gray Fabric",
+        "ja-JP": "グレーファブリック",
+        "ko-KR": "그레이 패브릭",
+        "zh-Hant": "灰色布紋"
+      },
+      "colorFamily": "gray",
+      "styleFamily": "fabric"
+    },
+    {
+      "manifest": "/papers/pattern/kraft-grid/manifest.json",
+      "paperTemplateId": "paper_kraft_grid",
+      "paperVersionId": "paper_kraft_grid_v1",
+      "type": "pattern",
+      "renderMode": "tile",
+      "title": {
+        "en": "Kraft Grid",
+        "ja-JP": "クラフトグリッド",
+        "ko-KR": "크라프트 그리드",
+        "zh-Hant": "牛皮紙方格"
+      },
+      "colorFamily": "kraft",
+      "styleFamily": "grid"
+    },
+    {
+      "manifest": "/papers/full-sheet/watercolor-blue/manifest.json",
+      "paperTemplateId": "paper_watercolor_blue",
+      "paperVersionId": "paper_watercolor_blue_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Blue Watercolor",
+        "ja-JP": "ブルー水彩",
+        "ko-KR": "블루 수채화",
+        "zh-Hant": "藍色水彩"
+      },
+      "colorFamily": "blue",
+      "styleFamily": "watercolor"
+    },
+    {
+      "manifest": "/papers/full-sheet/watercolor-pink/manifest.json",
+      "paperTemplateId": "paper_watercolor_pink",
+      "paperVersionId": "paper_watercolor_pink_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Pink Watercolor",
+        "ja-JP": "ピンク水彩",
+        "ko-KR": "핑크 수채화",
+        "zh-Hant": "粉色水彩"
+      },
+      "colorFamily": "pink",
+      "styleFamily": "watercolor"
+    },
+    {
+      "manifest": "/papers/full-sheet/watercolor-green/manifest.json",
+      "paperTemplateId": "paper_watercolor_green",
+      "paperVersionId": "paper_watercolor_green_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Green Watercolor",
+        "ja-JP": "グリーン水彩",
+        "ko-KR": "그린 수채화",
+        "zh-Hant": "綠色水彩"
+      },
+      "colorFamily": "green",
+      "styleFamily": "watercolor"
+    },
+    {
+      "manifest": "/papers/full-sheet/watercolor-beige/manifest.json",
+      "paperTemplateId": "paper_watercolor_beige",
+      "paperVersionId": "paper_watercolor_beige_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Beige Watercolor",
+        "ja-JP": "ベージュ水彩",
+        "ko-KR": "베이지 수채화",
+        "zh-Hant": "米色水彩"
+      },
+      "colorFamily": "beige",
+      "styleFamily": "watercolor"
+    },
+    {
+      "manifest": "/papers/full-sheet/newspaper/manifest.json",
+      "paperTemplateId": "paper_newspaper",
+      "paperVersionId": "paper_newspaper_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Vintage Newspaper",
+        "ja-JP": "ヴィンテージ新聞",
+        "ko-KR": "빈티지 신문",
+        "zh-Hant": "復古報紙"
+      },
+      "colorFamily": "vintage",
+      "styleFamily": "newspaper"
+    },
+    {
+      "manifest": "/papers/full-sheet/vintage-paper/manifest.json",
+      "paperTemplateId": "paper_vintage_paper",
+      "paperVersionId": "paper_vintage_paper_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Vintage Writing Paper",
+        "ja-JP": "ヴィンテージ便箋",
+        "ko-KR": "빈티지 필기지",
+        "zh-Hant": "復古書寫紙"
+      },
+      "colorFamily": "vintage",
+      "styleFamily": "paper"
+    },
+    {
+      "manifest": "/papers/full-sheet/aged-parchment/manifest.json",
+      "paperTemplateId": "paper_aged_parchment",
+      "paperVersionId": "paper_aged_parchment_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Aged Parchment",
+        "ja-JP": "エイジドパーチメント",
+        "ko-KR": "에이지드 파치먼트",
+        "zh-Hant": "做舊羊皮紙"
+      },
+      "colorFamily": "brown",
+      "styleFamily": "parchment"
+    },
+    {
+      "manifest": "/papers/full-sheet/kraft-paper/manifest.json",
+      "paperTemplateId": "paper_kraft_paper",
+      "paperVersionId": "paper_kraft_paper_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Kraft Paper",
+        "ja-JP": "クラフトペーパー",
+        "ko-KR": "크라프트 페이퍼",
+        "zh-Hant": "牛皮紙"
+      },
+      "colorFamily": "kraft",
+      "styleFamily": "material"
+    },
+    {
+      "manifest": "/papers/full-sheet/handmade-paper/manifest.json",
+      "paperTemplateId": "paper_handmade_paper",
+      "paperVersionId": "paper_handmade_paper_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Handmade Fiber Paper",
+        "ja-JP": "手漉き紙",
+        "ko-KR": "수제 섬유 종이",
+        "zh-Hant": "手工纖維紙"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "fiber"
+    },
+    {
+      "manifest": "/papers/full-sheet/rice-paper/manifest.json",
+      "paperTemplateId": "paper_rice_paper",
+      "paperVersionId": "paper_rice_paper_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Rice Paper",
+        "ja-JP": "和紙テクスチャ",
+        "ko-KR": "라이스 페이퍼",
+        "zh-Hant": "宣紙質感"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "fiber"
+    },
+    {
+      "manifest": "/papers/full-sheet/collage-vintage/manifest.json",
+      "paperTemplateId": "paper_collage_vintage",
+      "paperVersionId": "paper_collage_vintage_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Vintage Collage",
+        "ja-JP": "ヴィンテージコラージュ",
+        "ko-KR": "빈티지 콜라주",
+        "zh-Hant": "復古拼貼"
+      },
+      "colorFamily": "vintage",
+      "styleFamily": "collage"
+    },
+    {
+      "manifest": "/papers/full-sheet/botanical-illustration/manifest.json",
+      "paperTemplateId": "paper_botanical_illustration",
+      "paperVersionId": "paper_botanical_illustration_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Botanical Illustration",
+        "ja-JP": "ボタニカル図鑑",
+        "ko-KR": "보태니컬 일러스트",
+        "zh-Hant": "植物插畫"
+      },
+      "colorFamily": "cream",
+      "styleFamily": "botanical"
+    },
+    {
+      "manifest": "/papers/full-sheet/sky-clouds/manifest.json",
+      "paperTemplateId": "paper_sky_clouds",
+      "paperVersionId": "paper_sky_clouds_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Blue Sky Clouds",
+        "ja-JP": "青空と雲",
+        "ko-KR": "푸른 하늘 구름",
+        "zh-Hant": "藍天白雲"
+      },
+      "colorFamily": "blue",
+      "styleFamily": "illustration"
+    },
+    {
+      "manifest": "/papers/full-sheet/marble-white/manifest.json",
+      "paperTemplateId": "paper_marble_white",
+      "paperVersionId": "paper_marble_white_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "White Marble",
+        "ja-JP": "ホワイトマーブル",
+        "ko-KR": "화이트 마블",
+        "zh-Hant": "白色大理石"
+      },
+      "colorFamily": "white",
+      "styleFamily": "material"
+    },
+    {
+      "manifest": "/papers/full-sheet/concrete-gray/manifest.json",
+      "paperTemplateId": "paper_concrete_gray",
+      "paperVersionId": "paper_concrete_gray_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Gray Concrete",
+        "ja-JP": "グレーコンクリート",
+        "ko-KR": "그레이 콘크리트",
+        "zh-Hant": "灰色水泥"
+      },
+      "colorFamily": "gray",
+      "styleFamily": "material"
+    },
+    {
+      "manifest": "/papers/full-sheet/dark-chalkboard/manifest.json",
+      "paperTemplateId": "paper_dark_chalkboard",
+      "paperVersionId": "paper_dark_chalkboard_v1",
+      "type": "full-sheet",
+      "renderMode": "cover",
+      "title": {
+        "en": "Dark Chalkboard",
+        "ja-JP": "ダーク黒板",
+        "ko-KR": "다크 칠판",
+        "zh-Hant": "深色黑板"
+      },
+      "colorFamily": "dark",
+      "styleFamily": "material"
+    }
+  ]
+}
