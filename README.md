@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.1 — Paper Asset Contract + Starter Paper Pack**.
+Current milestone: **P0.2 — Page & Viewport**.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -70,3 +70,19 @@ npm run papers:validate
 ```
 
 These assets are development fixtures, not final marketplace-quality creator assets.
+
+## P0.2 page viewport
+
+P0.2 replaces the static page placeholder with the real Konva viewport foundation:
+
+- 1000 × 1400 logical page
+- fit-to-viewport transform
+- renderer-independent page ↔ screen coordinate math
+- pinch zoom from Fit to 4×
+- simultaneous two-finger zoom + pan
+- bounded panning
+- ResizeObserver-based responsive viewport
+- Konva DPR/Retina canvas rendering
+- wheel zoom for desktop QA
+
+The viewport deliberately does not implement paper painting yet. P0.3+ will render paper content inside the same logical page group.

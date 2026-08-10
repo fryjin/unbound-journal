@@ -17,6 +17,13 @@
     "assetContractTitle": "Paper Asset Contract 準備完了",
     "assetPackLoading": "スターターペーパーパックを読み込み中…",
     "assetPackError": "スターターペーパーパックを読み込めませんでした。",
-    "assetPackReady": "開発用ペーパー {{total}} 種 — パターン {{pattern}} / フルシート {{fullSheet}}。"
+    "assetPackReady": "開発用ペーパー {{total}} 種 — パターン {{pattern}} / フルシート {{fullSheet}}。",
+    "viewportLabel": "手帳ページのビューポート",
+    "viewportHint": "ピンチで拡大・縮小 · 2本指で移動",
+    "fitPage": "全体表示",
+    "fitPageAria": "ページ全体を表示します。現在のズームは {{zoom}} パーセントです。",
+    "assetPackShort": "ペーパー {{total}} 種",
+    "assetPackLoadingShort": "ペーパーを読み込み中…",
+    "assetPackErrorShort": "ペーパーパックを利用できません"
   }
 }

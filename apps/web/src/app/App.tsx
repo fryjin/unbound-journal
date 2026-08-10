@@ -16,7 +16,7 @@ export function App() {
     <main className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">P0.0</p>
+          <p className="eyebrow">P0.2</p>
           <h1>{t('app.title')}</h1>
         </div>
         <label className="locale-picker">

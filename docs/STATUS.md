@@ -3,7 +3,7 @@
 ## Current
 
 - Project codename / repository name: `unbound-journal`
-- Milestone: `P0.1 — Paper Asset Contract + Starter Paper Pack`
+- Milestone: `P0.2 — Page & Viewport`
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
 
@@ -30,8 +30,24 @@
 - Per-paper runtime variants: original / editor / preview / thumbnail
 - English / Japanese / Korean / Traditional Chinese localized paper titles
 - Node-only `npm run papers:validate` pack validation
-- Editor Shell now verifies `/papers/index.json` can be consumed at runtime
+- Editor Shell verifies `/papers/index.json` can be consumed at runtime
 - Model-generated source board retained for provenance
+
+## Completed in P0.2
+
+- Real `react-konva` Stage replaces the static page placeholder
+- Renderer-independent viewport math in `editor-core`
+- 1000 × 1400 logical page rendered through a transform Group
+- Responsive Fit calculation with page padding
+- Page ↔ screen coordinate conversion helpers
+- Pinch zoom from Fit to 4×
+- Simultaneous two-finger pan + pinch zoom
+- Pan boundary clamping and auto-centering on smaller axes
+- ResizeObserver handling with zoom-ratio preservation
+- Public `PageViewportHandle` for future Paper Brush coordinate mapping
+- Desktop wheel zoom for QA
+- Fit-to-page control and localized viewport guidance
+- DPR information surfaced for Retina QA; Konva owns backing-canvas pixel ratio
 
 ## Starter pack quality boundary
 
@@ -41,17 +57,20 @@ Future official or creator assets will enter through the same PaperRuntimeManife
 
 ## Environment limitation
 
-The current generation environment still cannot resolve all public npm packages through its configured internal registry (`prettier` returns registry 404). Therefore full `npm install`, Vite build, and TypeScript build verification remain pending in a normal development environment.
+The original generation environment could not resolve all public npm packages through its configured registry. P0.2 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
 
-The dependency-free paper-pack validator **does pass**.
+The dependency-free paper-pack validator remains available through:
+
+```bash
+npm run papers:validate
+```
 
 ## Next
 
-`P0.2 — Page & Viewport`
+`P0.3 — Paper Renderer`
 
-1. Implement real Konva Stage / logical 1000 × 1400 page
-2. Fit-to-viewport calculation
-3. Coordinate transforms
-4. Pinch zoom
-5. Two-finger pan
-6. Prevent browser gesture conflicts without blocking intentional editor gestures
+1. Resolve PaperRuntimeManifest assets
+2. Render `tile` Pattern papers in stable page texture coordinates
+3. Render `cover` Full-sheet papers
+4. Introduce PaperLayer visual stacking without brush masks yet
+5. Validate editor-resolution assets and clipping to page bounds

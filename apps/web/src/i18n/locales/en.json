@@ -17,6 +17,13 @@
     "assetContractTitle": "Paper Asset Contract ready",
     "assetPackLoading": "Loading starter paper pack…",
     "assetPackError": "Starter paper pack could not be loaded.",
-    "assetPackReady": "{{total}} development papers ready — {{pattern}} patterns / {{fullSheet}} full sheets."
+    "assetPackReady": "{{total}} development papers ready — {{pattern}} patterns / {{fullSheet}} full sheets.",
+    "viewportLabel": "Journal page viewport",
+    "viewportHint": "Pinch to zoom · use two fingers to move",
+    "fitPage": "Fit",
+    "fitPageAria": "Fit page to viewport. Current zoom {{zoom}} percent.",
+    "assetPackShort": "{{total}} papers ready",
+    "assetPackLoadingShort": "Loading papers…",
+    "assetPackErrorShort": "Paper pack unavailable"
   }
 }

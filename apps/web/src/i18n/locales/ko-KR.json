@@ -17,6 +17,13 @@
     "assetContractTitle": "Paper Asset Contract 준비 완료",
     "assetPackLoading": "스타터 페이퍼 팩을 불러오는 중…",
     "assetPackError": "스타터 페이퍼 팩을 불러오지 못했습니다.",
-    "assetPackReady": "개발용 페이퍼 {{total}}종 — 패턴 {{pattern}} / 풀시트 {{fullSheet}}."
+    "assetPackReady": "개발용 페이퍼 {{total}}종 — 패턴 {{pattern}} / 풀시트 {{fullSheet}}.",
+    "viewportLabel": "저널 페이지 뷰포트",
+    "viewportHint": "핀치로 확대·축소 · 두 손가락으로 이동",
+    "fitPage": "맞춤",
+    "fitPageAria": "페이지를 화면에 맞춥니다. 현재 확대율은 {{zoom}}퍼센트입니다.",
+    "assetPackShort": "페이퍼 {{total}}종 준비됨",
+    "assetPackLoadingShort": "페이퍼 불러오는 중…",
+    "assetPackErrorShort": "페이퍼 팩을 사용할 수 없음"
   }
 }

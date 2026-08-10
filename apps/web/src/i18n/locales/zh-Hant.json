@@ -17,6 +17,13 @@
     "assetContractTitle": "Paper Asset Contract 已就緒",
     "assetPackLoading": "正在載入起始紙張包…",
     "assetPackError": "無法載入起始紙張包。",
-    "assetPackReady": "已準備 {{total}} 款開發紙張 — Pattern {{pattern}} / Full-sheet {{fullSheet}}。"
+    "assetPackReady": "已準備 {{total}} 款開發紙張 — Pattern {{pattern}} / Full-sheet {{fullSheet}}。",
+    "viewportLabel": "手帳頁面視窗",
+    "viewportHint": "雙指縮放 · 雙指拖移畫面",
+    "fitPage": "適合頁面",
+    "fitPageAria": "將頁面調整為適合視窗。目前縮放 {{zoom}}%。",
+    "assetPackShort": "已備妥 {{total}} 款紙張",
+    "assetPackLoadingShort": "正在載入紙張…",
+    "assetPackErrorShort": "紙張包目前無法使用"
   }
 }
