@@ -1,0 +1,14 @@
+{
+  "name": "@unbound-journal/editor-renderer-konva",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@unbound-journal/editor-core": "0.0.0",
+    "@unbound-journal/paper-engine": "0.0.0",
+    "konva": "^10.3.0",
+    "react": "^19.2.8",
+    "react-konva": "^19.2.4"
+  }
+}
