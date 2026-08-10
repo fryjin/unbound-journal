@@ -553,3 +553,226 @@ button {
 .persistence-status--unavailable {
   color: #9a5d4e;
 }
+
+/* P0.9 device QA harness — rendered only when the URL includes ?qa=1. */
+.p0-qa-toggle {
+  position: fixed;
+  z-index: 50;
+  inset-block-start: calc(76px + env(safe-area-inset-top));
+  inset-inline-end: 10px;
+  min-width: 42px;
+  min-height: 36px;
+  border: 1px solid rgba(36, 34, 31, 0.16);
+  border-radius: 11px;
+  color: #2f2b26;
+  background: rgba(255, 253, 249, 0.96);
+  box-shadow: 0 8px 24px rgba(45, 37, 26, 0.12);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.p0-qa-panel {
+  position: fixed;
+  z-index: 50;
+  inset-block-start: calc(76px + env(safe-area-inset-top));
+  inset-inline-end: 10px;
+  width: min(360px, calc(100vw - 20px));
+  max-height: min(72dvh, 680px);
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid rgba(36, 34, 31, 0.14);
+  border-radius: 14px;
+  color: #35312c;
+  background: rgba(255, 253, 249, 0.97);
+  box-shadow: 0 14px 40px rgba(45, 37, 26, 0.18);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  font-size: 11px;
+}
+
+.p0-qa-panel__header,
+.p0-qa-panel__actions,
+.p0-qa-runtime > div,
+.p0-qa-check {
+  display: flex;
+  align-items: center;
+}
+
+.p0-qa-panel__header {
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.p0-qa-panel__header > div {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.p0-qa-panel__header strong {
+  font-size: 12px;
+}
+
+.p0-qa-panel__header span,
+.p0-qa-panel__note,
+.p0-qa-check small {
+  color: #756f66;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.p0-qa-panel__header button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 9px;
+  color: #655e55;
+  background: #f1ece4;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.p0-qa-panel__actions {
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+
+.p0-qa-panel__actions button {
+  min-height: 31px;
+  padding: 0 8px;
+  border: 1px solid #d7d2c8;
+  border-radius: 9px;
+  color: #514b43;
+  background: #fffdf9;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.p0-qa-panel button:disabled {
+  opacity: 0.45;
+}
+
+.p0-qa-runtime {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 10px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #f4f0e9;
+}
+
+.p0-qa-runtime > div {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.p0-qa-runtime dt {
+  color: #746d63;
+}
+
+.p0-qa-runtime dd {
+  margin: 0;
+  text-align: end;
+  font-weight: 650;
+}
+
+.p0-qa-checks {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.p0-qa-checks__summary {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.p0-qa-check {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1px 6px;
+  padding: 6px 7px;
+  border-radius: 9px;
+  background: #f4f0e9;
+}
+
+.p0-qa-check strong {
+  grid-row: 1 / 3;
+  align-self: start;
+  min-width: 31px;
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+
+.p0-qa-check span {
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.p0-qa-check--pass strong {
+  color: #55705a;
+}
+
+.p0-qa-check--warn strong {
+  color: #8b6b39;
+}
+
+.p0-qa-check--fail strong {
+  color: #9a5548;
+}
+
+.p0-qa-manual {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid #ddd7cd;
+  border-radius: 10px;
+}
+
+.p0-qa-manual legend {
+  padding-inline: 4px;
+  color: #514b43;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.p0-qa-manual label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 7px;
+  line-height: 1.35;
+}
+
+.p0-qa-manual input {
+  margin: 1px 0 0;
+}
+
+.p0-qa-panel__note {
+  margin: 8px 1px 0;
+}
+
+.p0-qa-panel__note code {
+  color: #514b43;
+  font-size: 9px;
+}
+
+@media (max-width: 620px) {
+  .p0-qa-panel {
+    inset-block-start: auto;
+    inset-inline: 8px;
+    inset-block-end: calc(74px + env(safe-area-inset-bottom));
+    width: auto;
+    max-height: min(48dvh, 430px);
+  }
+
+  .p0-qa-toggle {
+    inset-block-start: auto;
+    inset-inline-end: 8px;
+    inset-block-end: calc(78px + env(safe-area-inset-bottom));
+  }
+}

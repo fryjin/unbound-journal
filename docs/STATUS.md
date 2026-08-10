@@ -3,7 +3,7 @@
 ## Current
 
 - Project codename / repository name: `unbound-journal`
-- Milestone: `P0.8 — Persistence / Autosave`
+- Milestone: `P0.9 — Mobile QA / P0 Acceptance`
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
 
@@ -131,11 +131,29 @@
 - Local save / restore status surfaced in all supported locales
 - Cloudflare remains deferred
 
+## P0.9 QA implementation ready
+
+- Query-gated browser/device QA harness at `?qa=1`
+- Runtime IndexedDB round-trip check in an isolated QA database
+- Runtime persisted-document encode/decode check
+- Runtime PaperLayer ↔ PaperRuntimeAsset hydration diagnostics
+- Viewport / DPR / touch / History / persistence diagnostics
+- Copyable QA report and manual device checklist
+- One-click five-full-layer stress scenario using real PaperLayers and History commands
+- Stable `data-qa` selectors on core P0 controls
+- Dependency-free `npm run qa:p0:contracts` validator
+- GitHub Actions `P0 validation` workflow for normal-environment install / typecheck / build
+- P0.9 mobile QA plan and acceptance report
+
+**P0 final acceptance remains pending** until CI and physical-device QA are complete.
+
 ## Deployment status
 
-- Cloudflare deployment: **not started / not required yet**
-- Current P0 Paper Engine remains local-first
-- Explicitly notify the user before introducing Cloudflare Workers / D1 / R2 or public remote deployment
+- Cloudflare deployment: **not started**
+- A static HTTPS preview is **now required to finish P0.9 physical-device QA**
+- Cloudflare Pages is sufficient for P0.9; Workers / D1 / R2 remain out of scope
+- Build contract: Node 22 / `npm run build` / output `apps/web/dist`
+- After deployment, use `?qa=1` on the preview URL for iPhone / Android QA
 
 ## Starter pack quality boundary
 
@@ -145,7 +163,7 @@ Future official or creator assets will enter through the same PaperRuntimeManife
 
 ## Environment limitation
 
-The original generation environment could not resolve all public npm packages through its configured registry. P0.8 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
+The generation environment still cannot resolve all public npm packages through its configured registry. P0.9 therefore delegates the authoritative full install / typecheck / build gate to GitHub Actions after this patch is uploaded.
 
 The dependency-free paper-pack validator remains available through:
 
@@ -155,12 +173,11 @@ npm run papers:validate
 
 ## Next
 
-`P0.9 — Mobile QA / P0 Acceptance`
+`P0.9 — Acceptance closeout`
 
-1. Run the full workspace install / typecheck / build in a normal npm environment
-2. Validate Paper Brush / Eraser / Fill / Replace / History / Persistence on iPhone Safari
-3. Validate the same flows on Android Chrome and Desktop Chrome
-4. Stress-test 5+ paper layers and longer mask histories
-5. Verify reload / recovery and IndexedDB fallback behavior on real devices
-6. Close P0 Paper Engine acceptance defects before expanding into Content Stack
-7. Decide whether a temporary Cloudflare preview URL is needed for physical-device QA; notify the user before any deployment work
+1. Upload the P0.9 patch so GitHub Actions can run the full install / typecheck / build
+2. Deploy the same `main` build to a static HTTPS preview (Cloudflare Pages is sufficient)
+3. Run `/?qa=1` on Desktop Chrome, iPhone Safari, and Android Chrome
+4. Record copied QA reports and close any blocker defects
+5. Run the final novice-user acceptance task
+6. Mark P0 Paper Engine accepted only after all gates in `docs/P0.9_ACCEPTANCE_REPORT.md` pass

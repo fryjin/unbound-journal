@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.8 — Persistence / Autosave**.
+Current milestone: **P0.9 — Mobile QA / P0 Acceptance**. P0.9 QA tooling is ready; final acceptance remains pending CI and physical-device verification.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -33,7 +33,7 @@ Simplified Chinese is not currently a product locale.
 - Vite
 - Konva / react-konva
 - i18next / react-i18next
-- IndexedDB local autosave / recovery
+- Native IndexedDB local persistence / autosave
 - Cloudflare Workers + D1 + R2 in later cloud phases
 
 ## Local setup
@@ -144,25 +144,28 @@ A formal PaperLayer manager is intentionally deferred; the P0.6 UI targets the t
 
 ## P0.7 history
 
-P0.7 makes paper editing reversible through renderer-independent Commands:
+P0.7 adds renderer-independent Command History with reversible Paint / Erase / Fill / AddLayer / Replace / Clear operations, mobile Undo / Redo controls, and desktop QA shortcuts. History stores document operations rather than Canvas snapshots.
 
-- Paint / Erase / Fill / Replace / AddLayer / Clear are undoable
-- one completed gesture equals one History entry
-- Redo branches are invalidated after a new edit
-- runtime paper assets stay outside the History state
-- desktop Undo / Redo shortcuts are available for QA
+## P0.8 persistence
 
-## P0.8 persistence / autosave
+P0.8 persists versioned `PaperPageDocumentV1` data to native IndexedDB with debounced serialized autosave. Reload restores PaperLayers and rehydrates their pinned `paperVersionId` runtime assets. Session Undo / Redo stacks are intentionally not persisted.
 
-P0.8 persists the paper document locally without adding cloud infrastructure:
+## P0.9 QA / acceptance
 
-- versioned `PaperPageDocumentV1` schema
-- native IndexedDB storage under `packages/storage`
-- 450 ms debounced autosave after committed History changes
-- serialized writes prevent stale saves from overwriting newer work
-- reload restores `PaperLayer[]` as a new History baseline
-- pinned `paperVersionId` values rehydrate their runtime manifests / textures after restore
-- invalid or unavailable local storage degrades without crashing the editor
-- Undo/Redo stacks, viewport state, renderer caches, and active gestures are not persisted
+P0.9 adds a query-gated device QA harness. Open a built preview with:
 
-Cloudflare remains intentionally undeployed during P0.8. See `docs/EXECUTION_ROADMAP.md` for the authoritative executed milestone numbering.
+```text
+/?qa=1
+```
+
+The harness performs browser IndexedDB and document round-trip checks, reports viewport/DPR/touch/runtime hydration state, can seed five real full-page PaperLayers, and produces a copyable QA report. Normal editor URLs do not render this QA UI.
+
+The repository also includes a `P0 validation` GitHub Actions workflow. After dependencies are installed in a normal environment, the full gate is:
+
+```bash
+npm run qa:p0
+```
+
+P0 is accepted only after the build is green and Desktop Chrome, iPhone Safari, Android Chrome, reload/recovery, five-layer stress, and the novice-user flow pass. See `docs/P0.9_MOBILE_QA_PLAN.md` and `docs/P0.9_ACCEPTANCE_REPORT.md`.
+
+For physical-device P0.9 QA, a static HTTPS preview is now required. Cloudflare Pages is sufficient; Workers, D1, R2, accounts, and cloud sync remain out of scope.

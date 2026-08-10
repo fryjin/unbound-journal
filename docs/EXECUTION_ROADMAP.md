@@ -15,6 +15,11 @@ For all ongoing development, **`docs/STATUS.md` and this file are authoritative 
 - P0.6 — Fill / Replace
 - P0.7 — History / Undo / Redo
 - P0.8 — Persistence / Autosave
-- P0.9 — Mobile QA / P0 Acceptance
+- P0.9 — Mobile QA / P0 Acceptance — **in progress: QA harness ready, CI/device acceptance pending**
 
 Do not renumber completed work to match the original baseline document. The baseline remains useful for product decisions; the execution roadmap controls implementation handoff and status reporting.
+
+
+## P0 completion gate
+
+P0.9 is not closed by code generation alone. Final P0 acceptance requires a green normal-environment build plus Desktop Chrome, iPhone Safari, Android Chrome, persistence recovery, five-layer stress, and novice-user checks documented in `docs/P0.9_ACCEPTANCE_REPORT.md`.

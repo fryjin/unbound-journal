@@ -18,7 +18,9 @@
     "lint": "npm run lint --workspaces --if-present",
     "format:check": "prettier . --check",
     "format": "prettier . --write",
-    "papers:validate": "node scripts/validate-paper-pack.mjs"
+    "papers:validate": "node scripts/validate-paper-pack.mjs",
+    "qa:p0": "npm run papers:validate && npm run qa:p0:contracts && npm run typecheck && npm run build",
+    "qa:p0:contracts": "node scripts/validate-p0-contracts.mjs"
   },
   "devDependencies": {
     "prettier": "^3.8.3"

@@ -57,6 +57,8 @@ import {
   type ChangeEvent,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import { P0QaPanel } from './qa/P0QaPanel';
+import { isP0QaMode } from './qa/p0-qa';
 
 const tools = ['paper', 'media', 'text', 'draw'] as const;
 const DEFAULT_BRUSH_SIZE = 180;
@@ -121,6 +123,8 @@ export function EditorShell() {
   const [eraserSize, setEraserSize] = useState(DEFAULT_ERASER_SIZE);
   const [history, setHistory] = useState<CommandHistory<PaperHistoryState>>(historyRef.current);
   const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>('loading');
+  const [qaStressBusy, setQaStressBusy] = useState(false);
+  const qaMode = isP0QaMode();
 
   const scheduleDocumentSave = useCallback((paperLayers: PaperHistoryState) => {
     if (!persistenceReadyRef.current) return;
@@ -507,6 +511,50 @@ export function EditorShell() {
     commitPaperCommand(createClearPaperLayersCommand(createId('command'), currentLayers));
   }, [cancelActiveInput, commitPaperCommand]);
 
+  const seedP0QaStress = useCallback(async () => {
+    if (!paperPack || !persistenceReadyRef.current || qaStressBusy) return;
+    cancelActiveInput();
+    setQaStressBusy(true);
+
+    try {
+      const patterns = paperPack.papers.filter((paper) => paper.type === 'pattern');
+      const fullSheets = paperPack.papers.filter((paper) => paper.type === 'full-sheet');
+      const candidates = [
+        patterns[0],
+        patterns[Math.floor(patterns.length / 2)],
+        patterns[patterns.length - 1],
+        fullSheets[0],
+        fullSheets[fullSheets.length - 1],
+      ].filter((entry): entry is PaperCatalogEntry => Boolean(entry));
+      const uniqueEntries = candidates.filter(
+        (entry, index, entries) =>
+          entries.findIndex((candidate) => candidate.paperVersionId === entry.paperVersionId) === index,
+      );
+      const assets = await Promise.all(
+        uniqueEntries.slice(0, 5).map((entry) => loadPaperRuntimeAsset(entry.manifest)),
+      );
+
+      setPaperAssetsByVersion((current) => {
+        const next = { ...current };
+        for (const asset of assets) next[asset.manifest.paperVersionId] = asset;
+        return next;
+      });
+
+      for (const [index, asset] of assets.entries()) {
+        const fillStroke = createFillPageStroke(createId(`qa-fill-${index}`), LOGICAL_PAGE_SIZE);
+        const layer = createPaperLayerFromAsset(
+          createId(`qa-paper-layer-${index}`),
+          asset,
+          new Date().toISOString(),
+          [fillStroke],
+        );
+        commitPaperCommand(createAddPaperLayerCommand(createId('qa-command'), layer, 'fill'));
+      }
+    } finally {
+      setQaStressBusy(false);
+    }
+  }, [cancelActiveInput, commitPaperCommand, paperPack, qaStressBusy]);
+
   const changePaperToolMode = useCallback(
     (nextMode: PaperToolMode) => {
       if (nextMode === paperToolMode) return;
@@ -600,6 +648,7 @@ export function EditorShell() {
               onClick={performUndo}
               aria-label={t('editor.undoAria')}
               title={t('editor.undo')}
+              data-qa="undo"
             >
               ↶
             </button>
@@ -610,6 +659,7 @@ export function EditorShell() {
               onClick={performRedo}
               aria-label={t('editor.redoAria')}
               title={t('editor.redo')}
+              data-qa="redo"
             >
               ↷
             </button>
@@ -618,6 +668,7 @@ export function EditorShell() {
               className="viewport-fit-button"
               onClick={() => viewportRef.current?.fitToPage()}
               aria-label={t('editor.fitPageAria', { zoom: zoomPercent })}
+              data-qa="fit-page"
             >
               {t('editor.fitPage')} · {zoomPercent}%
             </button>
@@ -630,6 +681,7 @@ export function EditorShell() {
               type="button"
               className={paperToolMode === 'brush' ? 'is-active' : ''}
               aria-pressed={paperToolMode === 'brush'}
+              data-qa="mode-lay"
               onClick={() => changePaperToolMode('brush')}
             >
               {t('editor.paperToolLay')}
@@ -638,6 +690,7 @@ export function EditorShell() {
               type="button"
               className={paperToolMode === 'eraser' ? 'is-active' : ''}
               aria-pressed={paperToolMode === 'eraser'}
+              data-qa="mode-erase"
               onClick={() => changePaperToolMode('eraser')}
             >
               {t('editor.paperToolErase')}
@@ -675,6 +728,7 @@ export function EditorShell() {
                 setSelectedManifestUrl(event.target.value);
               }}
               aria-label={t('editor.paperPreviewSelect')}
+              data-qa="paper-select"
             >
               <optgroup label={t('editor.paperTypePattern')}>
                 {groupedPapers.pattern.map((paper) => (
@@ -720,6 +774,7 @@ export function EditorShell() {
               disabled={!canFillPage}
               onClick={fillPage}
               aria-label={t('editor.paperFillPageAria')}
+              data-qa="fill-page"
             >
               {t('editor.paperFillPage')}
             </button>
@@ -728,6 +783,7 @@ export function EditorShell() {
               disabled={!canReplaceTopLayer}
               onClick={replaceTopLayer}
               aria-label={t('editor.paperReplaceTopAria')}
+              data-qa="replace-top"
             >
               {t('editor.paperReplaceTop')}
             </button>
@@ -736,6 +792,7 @@ export function EditorShell() {
               className="paper-brush-panel__clear"
               disabled={!persistenceReady || paperLayers.length === 0}
               onClick={clearPage}
+              data-qa="clear-page"
             >
               {t('editor.paperBrushClear')}
             </button>
@@ -744,6 +801,25 @@ export function EditorShell() {
 
         <div className="viewport-gesture-hint">{t(hintKey)}</div>
       </div>
+
+      {qaMode ? (
+        <P0QaPanel
+          selfCheckInput={{
+            paperLayers,
+            renderedLayerCount: paperRenderLayers.length,
+            viewportSize: viewportState?.viewportSize ?? { width: 0, height: 0 },
+            devicePixelRatio:
+              viewportState?.devicePixelRatio ??
+              (typeof window === 'undefined' ? 1 : Math.max(1, window.devicePixelRatio || 1)),
+            undoCount: history.undoStack.length,
+            redoCount: history.redoStack.length,
+            persistenceStatus,
+          }}
+          canSeedStress={Boolean(paperPack && persistenceReady)}
+          stressBusy={qaStressBusy}
+          onSeedStress={seedP0QaStress}
+        />
+      ) : null}
 
       <nav className="tool-dock" aria-label={t('editor.toolsLabel')}>
         {tools.map((tool) => (
