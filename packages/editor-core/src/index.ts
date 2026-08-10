@@ -20,3 +20,15 @@ export {
   type Size,
   type ViewportTransform,
 } from './viewport';
+
+export {
+  DEFAULT_HISTORY_LIMIT,
+  canRedo,
+  canUndo,
+  createCommandHistory,
+  executeCommand,
+  redoCommand,
+  undoCommand,
+  type CommandHistory,
+  type EditorCommand,
+} from './history';

@@ -53,6 +53,11 @@
     "paperFillPage": "鋪滿",
     "paperFillPageAria": "使用目前選擇的紙張鋪滿整個頁面",
     "paperReplaceTop": "替換頂層",
-    "paperReplaceTopAria": "保留遮罩形狀，將最上層紙張替換為目前選擇的紙張"
+    "paperReplaceTopAria": "保留遮罩形狀，將最上層紙張替換為目前選擇的紙張",
+    "historyLayerStatus": "{{layers}} 個紙張圖層 · 可復原 {{undo}} · 可重做 {{redo}}",
+    "undo": "復原",
+    "redo": "重做",
+    "undoAria": "復原上一個紙張編輯操作",
+    "redoAria": "重做上一個已復原的紙張編輯操作"
   }
 }

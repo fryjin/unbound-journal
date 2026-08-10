@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.6 — Fill / Replace**.
+Current milestone: **P0.7 — History / Undo / Redo**.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -140,3 +140,19 @@ P0.6 closes the first paper-material editing loop:
 - Fill / Replace remain separate from Erase mode and are structured for the upcoming unified Command History
 
 A formal PaperLayer manager is intentionally deferred; the P0.6 UI targets the top layer while the underlying replacement helper supports any PaperLayer.
+
+
+## P0.7 history / undo / redo
+
+P0.7 makes the Paper Engine editing loop reversible:
+
+- every completed Brush / Erase gesture becomes one history command
+- Fill and Replace are reversible commands
+- PaperLayer creation is undone as a complete layer operation
+- Clear is reversible for development QA
+- history stores pure PaperLayer document state, never Canvas/Konva/image snapshots
+- runtime assets stay in a separate cache keyed by immutable `paperVersionId`
+- Undo/Redo buttons are available on mobile; desktop QA also supports standard keyboard shortcuts
+- a new edit after Undo invalidates the Redo branch
+
+Cloudflare remains intentionally undeployed at this milestone; the current Paper Engine does not require remote infrastructure yet.

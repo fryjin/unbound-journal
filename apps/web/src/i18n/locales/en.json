@@ -53,6 +53,11 @@
     "paperFillPage": "Fill",
     "paperFillPageAria": "Fill the entire page with the selected paper",
     "paperReplaceTop": "Replace top",
-    "paperReplaceTopAria": "Replace the top paper layer with the selected paper while preserving its mask"
+    "paperReplaceTopAria": "Replace the top paper layer with the selected paper while preserving its mask",
+    "historyLayerStatus": "{{layers}} layers · {{undo}} undo · {{redo}} redo",
+    "undo": "Undo",
+    "redo": "Redo",
+    "undoAria": "Undo last paper edit",
+    "redoAria": "Redo last undone paper edit"
   }
 }

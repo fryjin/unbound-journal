@@ -53,6 +53,11 @@
     "paperFillPage": "전체 채우기",
     "paperFillPageAria": "선택한 페이퍼로 페이지 전체를 채웁니다",
     "paperReplaceTop": "맨 위 교체",
-    "paperReplaceTopAria": "마스크는 유지하고 맨 위 페이퍼 레이어를 선택한 페이퍼로 교체합니다"
+    "paperReplaceTopAria": "마스크는 유지하고 맨 위 페이퍼 레이어를 선택한 페이퍼로 교체합니다",
+    "historyLayerStatus": "레이어 {{layers}}개 · 실행 취소 {{undo}} · 다시 실행 {{redo}}",
+    "undo": "실행 취소",
+    "redo": "다시 실행",
+    "undoAria": "마지막 페이퍼 편집 실행 취소",
+    "redoAria": "실행 취소한 페이퍼 편집 다시 실행"
   }
 }

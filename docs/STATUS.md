@@ -3,7 +3,7 @@
 ## Current
 
 - Project codename / repository name: `unbound-journal`
-- Milestone: `P0.6 — Fill / Replace`
+- Milestone: `P0.7 — History / Undo / Redo`
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
 
@@ -102,6 +102,26 @@
 - Fill / Replace cancel uncommitted input previews and are disabled in Erase mode
 - Tier-1 + Tier-2 localized Fill / Replace controls
 
+
+## Completed in P0.7
+
+- Generic renderer-independent Command History in `editor-core`
+- 100-operation default Undo history depth
+- Standard Redo branch invalidation after new edits
+- Reversible Paper commands for Paint / Erase / Fill / AddLayer / Replace / Clear
+- One completed gesture equals one History entry
+- Pure `PaperLayer[]` document state separated from runtime `PaperRuntimeAsset` cache
+- Undo / Redo cancel active uncommitted renderer previews before transition
+- Mobile HUD Undo / Redo controls
+- Desktop `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`, and Windows `Ctrl+Y` QA shortcuts
+- Tier-1 + Tier-2 localized History controls
+
+## Deployment status
+
+- Cloudflare deployment: **not started / not required yet**
+- Current P0 Paper Engine remains local-first
+- Explicitly notify the user before introducing Cloudflare Workers / D1 / R2 or public remote deployment
+
 ## Starter pack quality boundary
 
 The P0.1 assets are development fixtures generated from the model image-generation workflow. They intentionally validate asset diversity and runtime contracts; they are not final marketplace-quality creator assets.
@@ -110,7 +130,7 @@ Future official or creator assets will enter through the same PaperRuntimeManife
 
 ## Environment limitation
 
-The original generation environment could not resolve all public npm packages through its configured registry. P0.6 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
+The original generation environment could not resolve all public npm packages through its configured registry. P0.7 therefore must still be built/typechecked once in a normal npm environment before being considered deployment-ready.
 
 The dependency-free paper-pack validator remains available through:
 
@@ -120,9 +140,10 @@ npm run papers:validate
 
 ## Next
 
-`P0.7 — History / Undo / Redo`
+`P0.8 — Persistence / Autosave`
 
-1. Introduce unified command history for paper paint / erase / fill / replace / layer creation
-2. Ensure Undo/Redo restores exact PaperLayer order, material and mask history
-3. Keep high-frequency input mutable during gestures and commit one history command per completed action
-4. Do not add cloud persistence yet
+1. Persist the current renderer-independent paper document locally in IndexedDB
+2. Debounce autosave after committed History actions, not pointer movement
+3. Restore the latest local document after reload/crash
+4. Introduce schema versioning/migration boundary without cloud sync yet
+5. Keep Cloudflare deployment deferred until remote infrastructure is actually required

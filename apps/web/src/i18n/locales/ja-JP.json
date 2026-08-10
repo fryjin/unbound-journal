@@ -53,6 +53,11 @@
     "paperFillPage": "全面に敷く",
     "paperFillPageAria": "選択中のペーパーをページ全面に敷きます",
     "paperReplaceTop": "最上層を差替",
-    "paperReplaceTopAria": "マスクを維持したまま最上層のペーパーを選択中のペーパーに差し替えます"
+    "paperReplaceTopAria": "マスクを維持したまま最上層のペーパーを選択中のペーパーに差し替えます",
+    "historyLayerStatus": "{{layers}} レイヤー · 元に戻す {{undo}} · やり直し {{redo}}",
+    "undo": "元に戻す",
+    "redo": "やり直す",
+    "undoAria": "直前のペーパー編集を元に戻す",
+    "redoAria": "元に戻したペーパー編集をやり直す"
   }
 }

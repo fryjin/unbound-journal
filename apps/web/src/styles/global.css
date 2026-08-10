@@ -131,6 +131,7 @@ button {
 
 .viewport-hud__status,
 .viewport-fit-button,
+.viewport-history-button,
 .viewport-gesture-hint {
   border: 1px solid rgba(55, 49, 42, 0.08);
   background: rgba(255, 253, 249, 0.88);
@@ -162,6 +163,37 @@ button {
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+
+.viewport-hud__actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  pointer-events: auto;
+}
+
+.viewport-history-button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 10px;
+  color: #3f3a33;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.viewport-history-button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.viewport-history-button:not(:disabled):active {
+  transform: scale(0.96);
 }
 
 .viewport-fit-button {
@@ -255,7 +287,12 @@ button {
   }
 
   .viewport-hud__status {
-    max-width: 58%;
+    max-width: 46%;
+  }
+
+  .viewport-fit-button {
+    padding-inline: 8px;
+    font-size: 10px;
   }
 
   .viewport-gesture-hint {
