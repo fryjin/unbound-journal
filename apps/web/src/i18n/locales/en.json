@@ -67,6 +67,8 @@
     "persistenceSaved": "Saved locally",
     "persistenceError": "Local save failed",
     "persistenceRecoveryError": "Local draft could not be restored",
-    "persistenceUnavailable": "Local autosave unavailable"
+    "persistenceUnavailable": "Local autosave unavailable",
+    "historyDocumentStatus": "{{layers}} paper · {{elements}} content · {{undo}} undo · {{redo}} redo",
+    "selectHint": "Select mode · drag content with one finger · pinch or use two fingers to move the page"
   }
 }

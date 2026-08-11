@@ -4,7 +4,7 @@ Global-first, mobile-first digital journal creation project.
 
 ## P0
 
-Current milestone: **P0.9 — Mobile QA / P0 Acceptance**. P0.9 QA tooling is ready; final acceptance remains pending CI and physical-device verification.
+Current milestone: **P1.1 — Unified PageDocument + Content Stack Foundation**. P0 Paper Engine is functionally accepted; P1.1 implementation is ready for CI and deployed QA.
 
 The first product milestone is **P0 — Paper Engine Prototype**: validate painting, layering, filling, replacing, and erasing digital paper on a mobile journal page.
 
@@ -169,3 +169,12 @@ npm run qa:p0
 P0 is accepted only after the build is green and Desktop Chrome, iPhone Safari, Android Chrome, reload/recovery, five-layer stress, and the novice-user flow pass. See `docs/P0.9_MOBILE_QA_PLAN.md` and `docs/P0.9_ACCEPTANCE_REPORT.md`.
 
 For physical-device P0.9 QA, a static HTTPS preview is now required. Cloudflare Pages is sufficient; Workers, D1, R2, accounts, and cloud sync remain out of scope.
+
+
+## P1.1 unified document foundation
+
+P1.1 upgrades the editor from a paper-only history/persistence state to a renderer-independent `PageDocumentV2` containing both `paperLayers` and ordered `elements`. Existing P0 `PaperPageDocumentV1` records migrate automatically without clearing IndexedDB.
+
+The editor now uses one `CommandHistory<PageDocument>`: accepted Paper Commands are lifted into the unified document, while generic Content commands provide Add / Remove / Transform / Reorder operations. A QA-only placeholder element validates topmost hit testing, renderer-only drag preview, z-order, Undo/Redo, reload and two-finger cancellation before real Ink/Image/Text content lands.
+
+Use `/?qa=1` on the deployed preview for the P1.1 acceptance harness. See `docs/P1.1_UNIFIED_DOCUMENT_CONTENT_STACK_SPEC.md` and `docs/P1.1_ACCEPTANCE_PLAN.md`.

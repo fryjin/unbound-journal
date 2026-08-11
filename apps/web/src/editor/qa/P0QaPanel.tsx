@@ -3,20 +3,34 @@ import type { P0QaCheckResult, P0QaRuntimeSnapshot, RunP0QaSelfCheckInput } from
 import { runP0QaSelfCheck } from './p0-qa';
 
 const MANUAL_CHECKS = [
-  ['gesture', 'Pinch / two-finger pan never lays or erases paper'],
-  ['coordinates', 'Lay/erase coordinates remain accurate after zoom + pan'],
-  ['eraser-lock', 'One erase gesture never crosses into the layer below'],
-  ['reload', 'Reload restores the same layered artwork'],
-  ['stress', '5+ layers remain responsive during lay / erase / zoom'],
+  ['gesture', 'Pinch / two-finger pan never lays, erases, or drags content'],
+  ['coordinates', 'Paper/content coordinates remain accurate after zoom + pan'],
+  ['eraser-lock', 'One paper erase gesture never crosses into the layer below'],
+  ['content-select', 'Select mode targets the topmost overlapping content element'],
+  ['content-drag', 'Dragging content previews smoothly and commits one history step'],
+  ['content-cancel', 'Starting a two-finger gesture cancels an uncommitted content drag'],
+  ['content-order', 'Front/back ordering changes hit target and rendering order together'],
+  ['reload', 'Reload restores the same paper layers and content elements'],
+  ['stress', '5+ paper layers plus content remain responsive during edit / zoom'],
 ] as const;
 
 type ManualCheckId = (typeof MANUAL_CHECKS)[number][0];
+type InteractionMode = 'paper' | 'select';
 
 export interface P0QaPanelProps {
   selfCheckInput: RunP0QaSelfCheckInput;
   canSeedStress: boolean;
   stressBusy: boolean;
   onSeedStress: () => Promise<void>;
+  onSeedContent: () => void;
+  selectedElementId: string | null;
+  interactionMode: InteractionMode;
+  onInteractionModeChange: (mode: InteractionMode) => void;
+  onRotateSelected: () => void;
+  onScaleSelected: () => void;
+  onSendSelectedBack: () => void;
+  onBringSelectedFront: () => void;
+  onRemoveSelected: () => void;
 }
 
 function statusSymbol(status: P0QaCheckResult['status']): string {
@@ -28,8 +42,12 @@ function formatSnapshot(snapshot: P0QaRuntimeSnapshot): string[] {
     `Viewport: ${Math.round(snapshot.viewportSize.width)}×${Math.round(snapshot.viewportSize.height)} CSS px`,
     `DPR: ${snapshot.devicePixelRatio.toFixed(2)}`,
     `Touch points: ${snapshot.maxTouchPoints}`,
-    `Layers: ${snapshot.layerCount} (${snapshot.renderedLayerCount} renderable)`,
+    `Schema: PageDocument v${snapshot.schemaVersion}`,
+    `Paper layers: ${snapshot.layerCount} (${snapshot.renderedLayerCount} renderable)`,
     `Mask strokes: ${snapshot.strokeCount}`,
+    `Content elements: ${snapshot.elementCount}`,
+    `Interaction: ${snapshot.interactionMode}`,
+    `Selected: ${snapshot.selectedElementId ?? 'none'}`,
     `History: ${snapshot.undoCount} undo / ${snapshot.redoCount} redo`,
     `Persistence: ${snapshot.persistenceStatus}`,
     `IndexedDB: ${snapshot.indexedDbAvailable ? 'available' : 'unavailable'}`,
@@ -43,6 +61,15 @@ export function P0QaPanel({
   canSeedStress,
   stressBusy,
   onSeedStress,
+  onSeedContent,
+  selectedElementId,
+  interactionMode,
+  onInteractionModeChange,
+  onRotateSelected,
+  onScaleSelected,
+  onSendSelectedBack,
+  onBringSelectedFront,
+  onRemoveSelected,
 }: P0QaPanelProps) {
   const [expanded, setExpanded] = useState(true);
   const [running, setRunning] = useState(false);
@@ -70,7 +97,7 @@ export function P0QaPanel({
   const copyReport = async () => {
     if (!snapshot) return;
     const lines = [
-      'Unbound Journal — P0.9 QA Report',
+      'Unbound Journal — P1.1 QA Report',
       `Generated: ${new Date().toISOString()}`,
       '',
       ...formatSnapshot(snapshot),
@@ -104,11 +131,11 @@ export function P0QaPanel({
   }
 
   return (
-    <aside className="p0-qa-panel" data-qa="panel" aria-label="P0.9 QA harness">
+    <aside className="p0-qa-panel" data-qa="panel" aria-label="P1.1 QA harness">
       <div className="p0-qa-panel__header">
         <div>
-          <strong>P0.9 QA</strong>
-          <span>browser/device harness</span>
+          <strong>P1.1 QA</strong>
+          <span>unified document / content foundation</span>
         </div>
         <button type="button" onClick={() => setExpanded(false)} aria-label="Collapse QA panel">
           ×
@@ -125,8 +152,21 @@ export function P0QaPanel({
           onClick={() => void onSeedStress()}
           data-qa="seed-stress"
         >
-          {stressBusy ? 'Seeding…' : '+5 full layers'}
+          {stressBusy ? 'Seeding…' : '+5 paper layers'}
         </button>
+        <button type="button" onClick={onSeedContent} data-qa="seed-content">+ placeholder</button>
+        <button
+          type="button"
+          onClick={() => onInteractionModeChange(interactionMode === 'paper' ? 'select' : 'paper')}
+          data-qa="interaction-mode"
+        >
+          {interactionMode === 'paper' ? 'Select mode' : 'Paper mode'}
+        </button>
+        <button type="button" disabled={!selectedElementId} onClick={onRotateSelected}>Rotate +15°</button>
+        <button type="button" disabled={!selectedElementId} onClick={onScaleSelected}>Scale +10%</button>
+        <button type="button" disabled={!selectedElementId} onClick={onSendSelectedBack}>Send back</button>
+        <button type="button" disabled={!selectedElementId} onClick={onBringSelectedFront}>Bring front</button>
+        <button type="button" disabled={!selectedElementId} onClick={onRemoveSelected}>Remove</button>
         <button type="button" disabled={!snapshot} onClick={() => void copyReport()}>
           {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy report'}
         </button>
@@ -136,8 +176,9 @@ export function P0QaPanel({
         <dl className="p0-qa-runtime">
           <div><dt>Viewport</dt><dd>{Math.round(snapshot.viewportSize.width)}×{Math.round(snapshot.viewportSize.height)} · DPR {snapshot.devicePixelRatio.toFixed(2)}</dd></div>
           <div><dt>Touch</dt><dd>{snapshot.maxTouchPoints}</dd></div>
-          <div><dt>Layers</dt><dd>{snapshot.layerCount} / {snapshot.renderedLayerCount} rendered · {snapshot.strokeCount} strokes</dd></div>
+          <div><dt>Document</dt><dd>v{snapshot.schemaVersion} · {snapshot.layerCount} paper · {snapshot.elementCount} content</dd></div>
           <div><dt>History</dt><dd>{snapshot.undoCount} undo · {snapshot.redoCount} redo</dd></div>
+          <div><dt>Mode</dt><dd>{snapshot.interactionMode} · {snapshot.selectedElementId ? 'selected' : 'none'}</dd></div>
           <div><dt>Storage</dt><dd>{snapshot.persistenceStatus}</dd></div>
         </dl>
       ) : null}
@@ -172,7 +213,7 @@ export function P0QaPanel({
       </fieldset>
 
       <p className="p0-qa-panel__note">
-        QA-only UI. Open with <code>?qa=1</code>. The 5-layer button adds five undoable full-page layers.
+        QA-only UI. Open with <code>?qa=1</code>. Placeholder elements are development fixtures for the shared Content Stack only.
       </p>
     </aside>
   );

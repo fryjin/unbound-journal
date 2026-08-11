@@ -67,6 +67,8 @@
     "persistenceSaved": "로컬에 저장됨",
     "persistenceError": "로컬 저장에 실패했습니다",
     "persistenceRecoveryError": "로컬 초안을 복원하지 못했습니다",
-    "persistenceUnavailable": "로컬 자동 저장을 사용할 수 없습니다"
+    "persistenceUnavailable": "로컬 자동 저장을 사용할 수 없습니다",
+    "historyDocumentStatus": "종이 {{layers}} · 콘텐츠 {{elements}} · 실행 취소 {{undo}} · 다시 실행 {{redo}}",
+    "selectHint": "선택 모드 · 한 손가락으로 콘텐츠 이동 · 핀치 또는 두 손가락으로 페이지 이동"
   }
 }

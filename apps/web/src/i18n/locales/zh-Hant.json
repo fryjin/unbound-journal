@@ -67,6 +67,8 @@
     "persistenceSaved": "已儲存到本機",
     "persistenceError": "本機儲存失敗",
     "persistenceRecoveryError": "無法還原本機草稿",
-    "persistenceUnavailable": "本機自動儲存無法使用"
+    "persistenceUnavailable": "本機自動儲存無法使用",
+    "historyDocumentStatus": "紙張 {{layers}} · 內容 {{elements}} · 復原 {{undo}} · 重做 {{redo}}",
+    "selectHint": "選取模式 · 單指拖曳內容 · 雙指縮放或移動畫面"
   }
 }

@@ -1,17 +1,26 @@
 import {
   LOGICAL_PAGE_SIZE,
+  areElementTransformsEqual,
   canRedo as historyCanRedo,
   canUndo as historyCanUndo,
   createCommandHistory,
+  createDevelopmentPlaceholderElement,
+  createElementTransform,
   executeCommand,
+  findTopContentElementAtPoint,
   redoCommand,
+  translateElementTransform,
   undoCommand,
   type CommandHistory,
+  type ElementTransform,
+  type Point,
 } from '@unbound-journal/editor-core';
 import {
+  ContentStack,
   PageViewport,
   PaperBrushPreview,
   PaperStack,
+  type ContentStackHandle,
   type PageInputEvent,
   type PageViewportHandle,
   type PageViewportState,
@@ -26,8 +35,6 @@ import {
   createClearPaperLayersCommand,
   createFillPageStroke,
   createPaperLayerFromAsset,
-  createPaperPageDocument,
-  decodePaperPageDocument,
   createReplacePaperLayerCommand,
   isPointVisibleInPaperLayer,
   loadPaperPackIndex,
@@ -36,11 +43,21 @@ import {
   type PaperAssetLocale,
   type PaperCatalogEntry,
   type PaperHistoryCommand,
-  type PaperHistoryState,
   type PaperPackIndex,
-  type PaperPageDocument,
   type PaperRuntimeAsset,
 } from '@unbound-journal/paper-engine';
+import {
+  createAddContentElementCommand,
+  createPageDocument,
+  createRemoveContentElementCommand,
+  createReorderContentElementCommand,
+  createTransformContentElementCommand,
+  decodePageDocument,
+  liftPaperCommand,
+  withPageDocumentUpdatedAt,
+  type PageDocument,
+  type PageDocumentCommand,
+} from '@unbound-journal/document-model';
 import {
   createDebouncedAutosave,
   createIndexedDbDocumentStorage,
@@ -65,10 +82,19 @@ const DEFAULT_BRUSH_SIZE = 180;
 const DEFAULT_ERASER_SIZE = 180;
 const MIN_TOOL_SIZE = 60;
 const MAX_TOOL_SIZE = 360;
-const LOCAL_DOCUMENT_ID = 'p0-local-page';
+const LOCAL_DOCUMENT_ID = 'p0-local-page'; // Stable P0 storage key; payload migrates to PageDocument V2.
 const AUTOSAVE_DELAY_MS = 450;
 
 type PaperToolMode = 'brush' | 'eraser';
+type InteractionMode = 'paper' | 'select';
+
+type ActiveContentDrag = {
+  elementId: string;
+  startPoint: Point;
+  initialTransform: ElementTransform;
+  lastTransform: ElementTransform;
+  initialUpdatedAt: string;
+};
 type PersistenceStatus =
   | 'loading'
   | 'ready'
@@ -99,13 +125,18 @@ export function EditorShell() {
   const viewportRef = useRef<PageViewportHandle | null>(null);
   const brushPreviewRef = useRef<PaperBrushPreviewHandle | null>(null);
   const paperStackRef = useRef<PaperStackHandle | null>(null);
+  const contentStackRef = useRef<ContentStackHandle | null>(null);
   const strokeAssetRef = useRef<PaperRuntimeAsset | null>(null);
   const activeEraseLayerIdRef = useRef<string | null>(null);
-  const historyRef = useRef<CommandHistory<PaperHistoryState>>(createCommandHistory([]));
-  const paperLayersRef = useRef<PaperHistoryState>(historyRef.current.present);
-  const autosaveRef = useRef<DebouncedAutosaveController<PaperPageDocument> | null>(null);
+  const activeContentDragRef = useRef<ActiveContentDrag | null>(null);
+  const [history, setHistory] = useState<CommandHistory<PageDocument>>(() => {
+    const now = new Date().toISOString();
+    return createCommandHistory(createPageDocument(LOCAL_DOCUMENT_ID, [], [], now, now, LOGICAL_PAGE_SIZE));
+  });
+  const historyRef = useRef<CommandHistory<PageDocument>>(history);
+  const pageDocumentRef = useRef<PageDocument>(history.present);
+  const autosaveRef = useRef<DebouncedAutosaveController<PageDocument> | null>(null);
   const persistenceReadyRef = useRef(false);
-  const documentCreatedAtRef = useRef(new Date().toISOString());
   const hydratingPaperVersionsRef = useRef(new Set<string>());
 
   const [viewportState, setViewportState] = useState<PageViewportState | null>(null);
@@ -121,41 +152,38 @@ export function EditorShell() {
   const [paperToolMode, setPaperToolMode] = useState<PaperToolMode>('brush');
   const [brushSize, setBrushSize] = useState(DEFAULT_BRUSH_SIZE);
   const [eraserSize, setEraserSize] = useState(DEFAULT_ERASER_SIZE);
-  const [history, setHistory] = useState<CommandHistory<PaperHistoryState>>(historyRef.current);
   const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>('loading');
   const [qaStressBusy, setQaStressBusy] = useState(false);
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>('paper');
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const qaMode = isP0QaMode();
 
-  const scheduleDocumentSave = useCallback((paperLayers: PaperHistoryState) => {
+  const scheduleDocumentSave = useCallback((document: PageDocument) => {
     if (!persistenceReadyRef.current) return;
-    const now = new Date().toISOString();
-    autosaveRef.current?.schedule(
-      createPaperPageDocument(
-        LOCAL_DOCUMENT_ID,
-        paperLayers,
-        now,
-        documentCreatedAtRef.current,
-        LOGICAL_PAGE_SIZE,
-      ),
-    );
+    autosaveRef.current?.schedule(withPageDocumentUpdatedAt(document, new Date().toISOString()));
   }, []);
 
   const publishHistory = useCallback(
-    (nextHistory: CommandHistory<PaperHistoryState>, persist = true) => {
+    (nextHistory: CommandHistory<PageDocument>, persist = true) => {
       historyRef.current = nextHistory;
-      paperLayersRef.current = nextHistory.present;
+      pageDocumentRef.current = nextHistory.present;
       setHistory(nextHistory);
       if (persist) scheduleDocumentSave(nextHistory.present);
     },
     [scheduleDocumentSave],
   );
 
-  const commitPaperCommand = useCallback(
-    (command: PaperHistoryCommand) => {
+  const commitPageCommand = useCallback(
+    (command: PageDocumentCommand) => {
       const nextHistory = executeCommand(historyRef.current, command);
       if (nextHistory !== historyRef.current) publishHistory(nextHistory);
     },
     [publishHistory],
+  );
+
+  const commitPaperCommand = useCallback(
+    (command: PaperHistoryCommand) => commitPageCommand(liftPaperCommand(command)),
+    [commitPageCommand],
   );
 
   useEffect(() => {
@@ -167,7 +195,7 @@ export function EditorShell() {
 
     const storage = createIndexedDbDocumentStorage<unknown>();
     let active = true;
-    const autosave = createDebouncedAutosave<PaperPageDocument>({
+    const autosave = createDebouncedAutosave<PageDocument>({
       delayMs: AUTOSAVE_DELAY_MS,
       save: (document) => storage.save(LOCAL_DOCUMENT_ID, document),
       onStatusChange: (status: AutosaveStatus) => {
@@ -191,17 +219,19 @@ export function EditorShell() {
           return;
         }
 
-        const decoded = decodePaperPageDocument(rawDocument);
+        const decoded = decodePageDocument(rawDocument);
         if (!decoded.ok) {
           persistenceReadyRef.current = true;
           setPersistenceStatus('recovery-error');
           return;
         }
 
-        documentCreatedAtRef.current = decoded.document.createdAt;
-        publishHistory(createCommandHistory(decoded.document.paperLayers), false);
+        publishHistory(createCommandHistory(decoded.document), false);
         persistenceReadyRef.current = true;
         setPersistenceStatus('restored');
+        if (decoded.migratedFrom === 'paper-page-v1') {
+          autosave.schedule(withPageDocumentUpdatedAt(decoded.document, new Date().toISOString()));
+        }
       })
       .catch(() => {
         if (!active) return;
@@ -273,7 +303,9 @@ export function EditorShell() {
     };
   }, [selectedManifestUrl]);
 
-  const paperLayers = history.present;
+  const pageDocument = history.present;
+  const paperLayers = pageDocument.paperLayers;
+  const contentElements = pageDocument.elements;
 
   useEffect(() => {
     if (!paperPack || paperLayers.length === 0) return;
@@ -327,9 +359,20 @@ export function EditorShell() {
   const cancelActiveInput = useCallback(() => {
     brushPreviewRef.current?.cancelStroke();
     paperStackRef.current?.cancelErase();
+    const activeContentDrag = activeContentDragRef.current;
+    if (activeContentDrag) {
+      contentStackRef.current?.restoreElementTransform(activeContentDrag.elementId);
+    }
     strokeAssetRef.current = null;
     activeEraseLayerIdRef.current = null;
+    activeContentDragRef.current = null;
   }, []);
+
+  useEffect(() => {
+    if (selectedElementId && !contentElements.some((element) => element.id === selectedElementId)) {
+      setSelectedElementId(null);
+    }
+  }, [contentElements, selectedElementId]);
 
   const performUndo = useCallback(() => {
     if (!persistenceReadyRef.current) return;
@@ -373,8 +416,28 @@ export function EditorShell() {
     (event: PageInputEvent) => {
       if (!event.insidePage || !persistenceReadyRef.current) return;
 
+      if (interactionMode === 'select') {
+        brushPreviewRef.current?.cancelStroke();
+        paperStackRef.current?.cancelErase();
+        strokeAssetRef.current = null;
+        activeEraseLayerIdRef.current = null;
+
+        const hit = findTopContentElementAtPoint(pageDocumentRef.current.elements, event.pagePoint);
+        setSelectedElementId(hit?.id ?? null);
+        if (!hit) return;
+
+        activeContentDragRef.current = {
+          elementId: hit.id,
+          startPoint: { ...event.pagePoint },
+          initialTransform: { ...hit.transform },
+          lastTransform: { ...hit.transform },
+          initialUpdatedAt: hit.updatedAt,
+        };
+        return;
+      }
+
       if (paperToolMode === 'eraser') {
-        const current = paperLayersRef.current;
+        const current = pageDocumentRef.current.paperLayers;
         let targetLayerId: string | null = null;
         for (let index = current.length - 1; index >= 0; index -= 1) {
           const candidate = current[index];
@@ -394,10 +457,21 @@ export function EditorShell() {
       const started = brushPreviewRef.current?.beginStroke(event.pagePoint, brushSize) ?? false;
       strokeAssetRef.current = started ? paperAsset : null;
     },
-    [brushSize, eraserSize, paperAsset, paperToolMode],
+    [brushSize, eraserSize, interactionMode, paperAsset, paperToolMode],
   );
 
   const handlePageInputMove = useCallback((event: PageInputEvent) => {
+    const activeContentDrag = activeContentDragRef.current;
+    if (activeContentDrag) {
+      const nextTransform = translateElementTransform(activeContentDrag.initialTransform, {
+        x: event.pagePoint.x - activeContentDrag.startPoint.x,
+        y: event.pagePoint.y - activeContentDrag.startPoint.y,
+      });
+      activeContentDrag.lastTransform = nextTransform;
+      contentStackRef.current?.previewElementTransform(activeContentDrag.elementId, nextTransform);
+      return;
+    }
+
     if (activeEraseLayerIdRef.current) {
       paperStackRef.current?.appendErasePoint(event.pagePoint);
       return;
@@ -408,6 +482,31 @@ export function EditorShell() {
 
   const handlePageInputEnd = useCallback(
     (event: PageInputEvent | null) => {
+      const activeContentDrag = activeContentDragRef.current;
+      if (activeContentDrag) {
+        if (event) {
+          activeContentDrag.lastTransform = translateElementTransform(activeContentDrag.initialTransform, {
+            x: event.pagePoint.x - activeContentDrag.startPoint.x,
+            y: event.pagePoint.y - activeContentDrag.startPoint.y,
+          });
+        }
+        activeContentDragRef.current = null;
+        contentStackRef.current?.restoreElementTransform(activeContentDrag.elementId);
+        if (!areElementTransformsEqual(activeContentDrag.initialTransform, activeContentDrag.lastTransform)) {
+          commitPageCommand(
+            createTransformContentElementCommand(
+              createId('command'),
+              activeContentDrag.elementId,
+              activeContentDrag.initialTransform,
+              activeContentDrag.lastTransform,
+              activeContentDrag.initialUpdatedAt,
+              new Date().toISOString(),
+            ),
+          );
+        }
+        return;
+      }
+
       const activeEraseLayerId = activeEraseLayerIdRef.current;
       if (activeEraseLayerId) {
         if (event) paperStackRef.current?.appendErasePoint(event.pagePoint);
@@ -437,7 +536,7 @@ export function EditorShell() {
         return;
       }
 
-      const currentLayers = paperLayersRef.current;
+      const currentLayers = pageDocumentRef.current.paperLayers;
       const topLayer = currentLayers[currentLayers.length - 1];
       if (topLayer?.paperVersionId === strokeAsset.manifest.paperVersionId) {
         commitPaperCommand(
@@ -460,14 +559,14 @@ export function EditorShell() {
 
       requestAnimationFrame(() => brushPreviewRef.current?.clearPreview());
     },
-    [commitPaperCommand],
+    [commitPageCommand, commitPaperCommand],
   );
 
   const fillPage = useCallback(() => {
-    if (!paperAsset || paperToolMode !== 'brush') return;
+    if (interactionMode !== 'paper' || !paperAsset || paperToolMode !== 'brush') return;
     cancelActiveInput();
     const fillStroke = createFillPageStroke(createId('fill'), LOGICAL_PAGE_SIZE);
-    const currentLayers = paperLayersRef.current;
+    const currentLayers = pageDocumentRef.current.paperLayers;
     const topLayer = currentLayers[currentLayers.length - 1];
 
     if (topLayer?.paperVersionId === paperAsset.manifest.paperVersionId) {
@@ -489,12 +588,12 @@ export function EditorShell() {
       [fillStroke],
     );
     commitPaperCommand(createAddPaperLayerCommand(createId('command'), newLayer, 'fill'));
-  }, [cancelActiveInput, commitPaperCommand, paperAsset, paperToolMode]);
+  }, [cancelActiveInput, commitPaperCommand, interactionMode, paperAsset, paperToolMode]);
 
   const replaceTopLayer = useCallback(() => {
-    if (!paperAsset || paperToolMode !== 'brush') return;
+    if (interactionMode !== 'paper' || !paperAsset || paperToolMode !== 'brush') return;
     cancelActiveInput();
-    const currentLayers = paperLayersRef.current;
+    const currentLayers = pageDocumentRef.current.paperLayers;
     const topLayer = currentLayers[currentLayers.length - 1];
     if (!topLayer || topLayer.paperVersionId === paperAsset.manifest.paperVersionId) return;
 
@@ -502,14 +601,15 @@ export function EditorShell() {
     commitPaperCommand(
       createReplacePaperLayerCommand(createId('command'), topLayer, replacement),
     );
-  }, [cancelActiveInput, commitPaperCommand, paperAsset, paperToolMode]);
+  }, [cancelActiveInput, commitPaperCommand, interactionMode, paperAsset, paperToolMode]);
 
   const clearPage = useCallback(() => {
+    if (interactionMode !== 'paper') return;
     cancelActiveInput();
-    const currentLayers = paperLayersRef.current;
+    const currentLayers = pageDocumentRef.current.paperLayers;
     if (currentLayers.length === 0) return;
     commitPaperCommand(createClearPaperLayersCommand(createId('command'), currentLayers));
-  }, [cancelActiveInput, commitPaperCommand]);
+  }, [cancelActiveInput, commitPaperCommand, interactionMode]);
 
   const seedP0QaStress = useCallback(async () => {
     if (!paperPack || !persistenceReadyRef.current || qaStressBusy) return;
@@ -555,23 +655,112 @@ export function EditorShell() {
     }
   }, [cancelActiveInput, commitPaperCommand, paperPack, qaStressBusy]);
 
+  const seedP1QaPlaceholder = useCallback(() => {
+    if (!persistenceReadyRef.current) return;
+    cancelActiveInput();
+    const index = pageDocumentRef.current.elements.length;
+    const now = new Date().toISOString();
+    const element = createDevelopmentPlaceholderElement(
+      createId('content-placeholder'),
+      `Content ${index + 1}`,
+      createElementTransform(250 + (index % 4) * 42, 430 + (index % 3) * 54),
+      360,
+      220,
+      now,
+    );
+    commitPageCommand(createAddContentElementCommand(createId('command'), element));
+    setSelectedElementId(element.id);
+    setInteractionMode('select');
+  }, [cancelActiveInput, commitPageCommand]);
+
+  const transformSelectedQaElement = useCallback(
+    (kind: 'rotate' | 'scale') => {
+      const document = pageDocumentRef.current;
+      const element = document.elements.find((item) => item.id === selectedElementId);
+      if (!element) return;
+      cancelActiveInput();
+      const nextTransform =
+        kind === 'rotate'
+          ? { ...element.transform, rotation: element.transform.rotation + 15 }
+          : {
+              ...element.transform,
+              scaleX: element.transform.scaleX * 1.1,
+              scaleY: element.transform.scaleY * 1.1,
+            };
+      commitPageCommand(
+        createTransformContentElementCommand(
+          createId('command'),
+          element.id,
+          element.transform,
+          nextTransform,
+          element.updatedAt,
+          new Date().toISOString(),
+        ),
+      );
+    },
+    [cancelActiveInput, commitPageCommand, selectedElementId],
+  );
+
+  const removeSelectedQaElement = useCallback(() => {
+    const document = pageDocumentRef.current;
+    const index = document.elements.findIndex((element) => element.id === selectedElementId);
+    const element = index >= 0 ? document.elements[index] : undefined;
+    if (!element) return;
+    cancelActiveInput();
+    commitPageCommand(createRemoveContentElementCommand(createId('command'), element, index));
+    setSelectedElementId(null);
+  }, [cancelActiveInput, commitPageCommand, selectedElementId]);
+
+  const reorderSelectedQaElement = useCallback(
+    (direction: 'back' | 'front') => {
+      const document = pageDocumentRef.current;
+      const currentIndex = document.elements.findIndex((element) => element.id === selectedElementId);
+      if (currentIndex < 0 || document.elements.length < 2) return;
+      const nextIndex = direction === 'front' ? document.elements.length - 1 : 0;
+      if (currentIndex === nextIndex) return;
+      cancelActiveInput();
+      commitPageCommand(
+        createReorderContentElementCommand(
+          createId('command'),
+          selectedElementId!,
+          currentIndex,
+          nextIndex,
+        ),
+      );
+    },
+    [cancelActiveInput, commitPageCommand, selectedElementId],
+  );
+
+  const changeInteractionMode = useCallback(
+    (nextMode: InteractionMode) => {
+      if (nextMode === interactionMode) return;
+      cancelActiveInput();
+      setInteractionMode(nextMode);
+      if (nextMode === 'paper') setSelectedElementId(null);
+    },
+    [cancelActiveInput, interactionMode],
+  );
+
   const changePaperToolMode = useCallback(
     (nextMode: PaperToolMode) => {
-      if (nextMode === paperToolMode) return;
+      if (nextMode === paperToolMode && interactionMode === 'paper') return;
       cancelActiveInput();
+      setInteractionMode('paper');
+      setSelectedElementId(null);
       setPaperToolMode(nextMode);
     },
-    [cancelActiveInput, paperToolMode],
+    [cancelActiveInput, interactionMode, paperToolMode],
   );
 
   const paperReady = Boolean(paperAsset && paperTextureStatus === 'ready' && !paperAssetError);
   const topPaperLayer = paperLayers[paperLayers.length - 1] ?? null;
   const persistenceReady = persistenceStatus !== 'loading';
   const canFillPage = Boolean(
-    persistenceReady && paperAsset && paperToolMode === 'brush' && !paperAssetError,
+    persistenceReady && interactionMode === 'paper' && paperAsset && paperToolMode === 'brush' && !paperAssetError,
   );
   const canReplaceTopLayer = Boolean(
     persistenceReady &&
+      interactionMode === 'paper' &&
       paperAsset &&
       paperToolMode === 'brush' &&
       topPaperLayer &&
@@ -580,7 +769,12 @@ export function EditorShell() {
   const undoAvailable = persistenceReady && historyCanUndo(history);
   const redoAvailable = persistenceReady && historyCanRedo(history);
   const activeToolSize = paperToolMode === 'brush' ? brushSize : eraserSize;
-  const hintKey = paperToolMode === 'brush' ? 'editor.paperBrushHint' : 'editor.paperEraserHint';
+  const hintKey =
+    interactionMode === 'select'
+      ? 'editor.selectHint'
+      : paperToolMode === 'brush'
+        ? 'editor.paperBrushHint'
+        : 'editor.paperEraserHint';
   const persistenceLabelKey =
     persistenceStatus === 'recovery-error'
       ? 'editor.persistenceRecoveryError'
@@ -618,6 +812,11 @@ export function EditorShell() {
             asset={paperAsset}
             onLoadStateChange={setPaperTextureStatus}
           />
+          <ContentStack
+            ref={contentStackRef}
+            elements={contentElements}
+            selectedElementId={selectedElementId}
+          />
         </PageViewport>
 
         <div className="viewport-hud" aria-live="polite">
@@ -627,8 +826,9 @@ export function EditorShell() {
             </strong>
             <span>
               {paperPack
-                ? t('editor.historyLayerStatus', {
+                ? t('editor.historyDocumentStatus', {
                     layers: paperLayers.length,
+                    elements: contentElements.length,
                     undo: history.undoStack.length,
                     redo: history.redoStack.length,
                   })
@@ -675,7 +875,7 @@ export function EditorShell() {
           </div>
         </div>
 
-        <div className="paper-brush-panel" aria-label={t('editor.paperBrushPanelLabel')}>
+        <div className={`paper-brush-panel ${interactionMode === 'select' ? 'is-inactive' : ''}`} aria-label={t('editor.paperBrushPanelLabel')}>
           <div className="paper-tool-mode" role="group" aria-label={t('editor.paperToolModeLabel')}>
             <button
               type="button"
@@ -722,7 +922,7 @@ export function EditorShell() {
           {paperPack ? (
             <select
               value={selectedManifestUrl ?? ''}
-              disabled={paperToolMode === 'eraser' || !persistenceReady}
+              disabled={interactionMode !== 'paper' || paperToolMode === 'eraser' || !persistenceReady}
               onChange={(event: ChangeEvent<HTMLSelectElement>) => {
                 cancelActiveInput();
                 setSelectedManifestUrl(event.target.value);
@@ -790,7 +990,7 @@ export function EditorShell() {
             <button
               type="button"
               className="paper-brush-panel__clear"
-              disabled={!persistenceReady || paperLayers.length === 0}
+              disabled={!persistenceReady || interactionMode !== 'paper' || paperLayers.length === 0}
               onClick={clearPage}
               data-qa="clear-page"
             >
@@ -805,7 +1005,7 @@ export function EditorShell() {
       {qaMode ? (
         <P0QaPanel
           selfCheckInput={{
-            paperLayers,
+            document: pageDocument,
             renderedLayerCount: paperRenderLayers.length,
             viewportSize: viewportState?.viewportSize ?? { width: 0, height: 0 },
             devicePixelRatio:
@@ -814,10 +1014,21 @@ export function EditorShell() {
             undoCount: history.undoStack.length,
             redoCount: history.redoStack.length,
             persistenceStatus,
+            interactionMode,
+            selectedElementId,
           }}
           canSeedStress={Boolean(paperPack && persistenceReady)}
           stressBusy={qaStressBusy}
           onSeedStress={seedP0QaStress}
+          onSeedContent={seedP1QaPlaceholder}
+          selectedElementId={selectedElementId}
+          interactionMode={interactionMode}
+          onInteractionModeChange={changeInteractionMode}
+          onRotateSelected={() => transformSelectedQaElement('rotate')}
+          onScaleSelected={() => transformSelectedQaElement('scale')}
+          onSendSelectedBack={() => reorderSelectedQaElement('back')}
+          onBringSelectedFront={() => reorderSelectedQaElement('front')}
+          onRemoveSelected={removeSelectedQaElement}
         />
       ) : null}
 

@@ -1,7 +1,11 @@
 import { LOGICAL_PAGE_SIZE, type Size } from '@unbound-journal/editor-core';
 import {
+  createPageDocument,
+  decodePageDocument,
+  type PageDocument,
+} from '@unbound-journal/document-model';
+import {
   createPaperPageDocument,
-  decodePaperPageDocument,
   type PaperHistoryState,
 } from '@unbound-journal/paper-engine';
 import {
@@ -26,21 +30,27 @@ export interface P0QaRuntimeSnapshot {
   language: string;
   layerCount: number;
   strokeCount: number;
+  elementCount: number;
   renderedLayerCount: number;
   undoCount: number;
   redoCount: number;
   persistenceStatus: string;
+  interactionMode: string;
+  selectedElementId: string | null;
+  schemaVersion: number;
   indexedDbAvailable: boolean;
 }
 
 export interface RunP0QaSelfCheckInput {
-  paperLayers: PaperHistoryState;
+  document: PageDocument;
   renderedLayerCount: number;
   viewportSize: Size;
   devicePixelRatio: number;
   undoCount: number;
   redoCount: number;
   persistenceStatus: string;
+  interactionMode: string;
+  selectedElementId: string | null;
 }
 
 export function isP0QaMode(): boolean {
@@ -59,12 +69,16 @@ export function createP0QaRuntimeSnapshot(input: RunP0QaSelfCheckInput): P0QaRun
     maxTouchPoints: typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints,
     userAgent: typeof navigator === 'undefined' ? 'unknown' : navigator.userAgent,
     language: typeof navigator === 'undefined' ? 'unknown' : navigator.language,
-    layerCount: input.paperLayers.length,
-    strokeCount: countStrokes(input.paperLayers),
+    layerCount: input.document.paperLayers.length,
+    strokeCount: countStrokes(input.document.paperLayers),
+    elementCount: input.document.elements.length,
     renderedLayerCount: input.renderedLayerCount,
     undoCount: input.undoCount,
     redoCount: input.redoCount,
     persistenceStatus: input.persistenceStatus,
+    interactionMode: input.interactionMode,
+    selectedElementId: input.selectedElementId,
+    schemaVersion: input.document.schemaVersion,
     indexedDbAvailable: isIndexedDbAvailable(),
   };
 }
@@ -85,7 +99,7 @@ async function runIndexedDbRoundTrip(): Promise<P0QaCheckResult> {
   });
   const id = `roundtrip-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const payload = {
-    marker: 'unbound-journal-p0-qa',
+    marker: 'unbound-journal-p1-qa',
     timestamp: new Date().toISOString(),
     value: Math.random(),
   };
@@ -114,23 +128,58 @@ async function runIndexedDbRoundTrip(): Promise<P0QaCheckResult> {
   }
 }
 
-function runDocumentRoundTrip(paperLayers: PaperHistoryState): P0QaCheckResult {
+function runDocumentRoundTrip(document: PageDocument): P0QaCheckResult {
   const now = new Date().toISOString();
-  const document = createPaperPageDocument('p0-qa-roundtrip', paperLayers, now, now, LOGICAL_PAGE_SIZE);
-  const decoded = decodePaperPageDocument(JSON.parse(JSON.stringify(document)) as unknown);
+  const snapshot = createPageDocument(
+    'p1-qa-roundtrip',
+    document.paperLayers,
+    document.elements,
+    now,
+    now,
+    LOGICAL_PAGE_SIZE,
+  );
+  const decoded = decodePageDocument(JSON.parse(JSON.stringify(snapshot)) as unknown);
 
   const passed =
     decoded.ok &&
-    decoded.document.paperLayers.length === paperLayers.length &&
-    countStrokes(decoded.document.paperLayers) === countStrokes(paperLayers);
+    decoded.document.paperLayers.length === document.paperLayers.length &&
+    decoded.document.elements.length === document.elements.length &&
+    countStrokes(decoded.document.paperLayers) === countStrokes(document.paperLayers);
 
   return {
     id: 'document-roundtrip',
-    label: 'Document encode/decode',
+    label: 'Unified PageDocument round-trip',
     status: passed ? 'pass' : 'fail',
     detail: passed
-      ? `${paperLayers.length} layers / ${countStrokes(paperLayers)} strokes round-tripped.`
-      : 'Persisted document did not round-trip cleanly.',
+      ? `${document.paperLayers.length} paper layers / ${document.elements.length} content elements round-tripped as schema v2.`
+      : 'Unified PageDocument did not round-trip cleanly.',
+  };
+}
+
+function runP0MigrationCheck(document: PageDocument): P0QaCheckResult {
+  const now = new Date().toISOString();
+  const legacy = createPaperPageDocument(
+    'p0-migration-qa',
+    document.paperLayers,
+    now,
+    now,
+    LOGICAL_PAGE_SIZE,
+  );
+  const decoded = decodePageDocument(JSON.parse(JSON.stringify(legacy)) as unknown);
+  const passed =
+    decoded.ok &&
+    decoded.migratedFrom === 'paper-page-v1' &&
+    decoded.document.schemaVersion === 2 &&
+    decoded.document.paperLayers.length === document.paperLayers.length &&
+    decoded.document.elements.length === 0;
+
+  return {
+    id: 'p0-v1-migration',
+    label: 'P0 → P1 document migration',
+    status: passed ? 'pass' : 'fail',
+    detail: passed
+      ? `${document.paperLayers.length} legacy paper layers migrated to PageDocument v2 without content fabrication.`
+      : 'Legacy PaperPageDocumentV1 migration failed.',
   };
 }
 
@@ -180,8 +229,9 @@ export async function runP0QaSelfCheck(
     snapshot,
     checks: [
       runViewportCheck(input.viewportSize, input.devicePixelRatio),
-      runDocumentRoundTrip(input.paperLayers),
-      runRendererHydrationCheck(input.paperLayers, input.renderedLayerCount),
+      runDocumentRoundTrip(input.document),
+      runP0MigrationCheck(input.document),
+      runRendererHydrationCheck(input.document.paperLayers, input.renderedLayerCount),
       runPersistenceStateCheck(input.persistenceStatus),
       indexedDbCheck,
     ],

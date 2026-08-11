@@ -1,0 +1,11 @@
+{
+  "name": "@unbound-journal/document-model",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@unbound-journal/editor-core": "0.0.0",
+    "@unbound-journal/paper-engine": "0.0.0"
+  }
+}

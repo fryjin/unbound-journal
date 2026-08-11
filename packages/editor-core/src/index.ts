@@ -32,3 +32,22 @@ export {
   type CommandHistory,
   type EditorCommand,
 } from './history';
+
+export {
+  areElementTransformsEqual,
+  cloneContentElement,
+  cloneElementTransform,
+  createDevelopmentPlaceholderElement,
+  createElementTransform,
+  decodeContentElement,
+  decodeElementTransform,
+  findTopContentElementAtPoint,
+  isPointInsideContentElement,
+  pagePointToElementLocalPoint,
+  translateElementTransform,
+  type ContentElement,
+  type ContentElementBase,
+  type DevelopmentPlaceholderElement,
+  type EditorSelectionState,
+  type ElementTransform,
+} from './content';

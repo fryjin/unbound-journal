@@ -20,7 +20,10 @@
     "format": "prettier . --write",
     "papers:validate": "node scripts/validate-paper-pack.mjs",
     "qa:p0": "npm run papers:validate && npm run qa:p0:contracts && npm run typecheck && npm run build",
-    "qa:p0:contracts": "node scripts/validate-p0-contracts.mjs"
+    "qa:p0:contracts": "node scripts/validate-p0-contracts.mjs",
+    "qa:p1:contracts": "node scripts/validate-p1-foundation.mjs",
+    "qa:p1": "npm run papers:validate && npm run qa:p0:contracts && npm run qa:p1:contracts && npm run typecheck && npm run build",
+    "qa:current": "npm run qa:p1"
   },
   "devDependencies": {
     "prettier": "^3.8.3"

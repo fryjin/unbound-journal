@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@unbound-journal/editor-core": "0.0.0",
+    "@unbound-journal/document-model": "0.0.0",
     "@unbound-journal/editor-renderer-konva": "0.0.0",
     "@unbound-journal/paper-engine": "0.0.0",
     "@unbound-journal/shared": "0.0.0",

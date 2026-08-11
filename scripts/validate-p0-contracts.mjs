@@ -47,7 +47,8 @@ const editorShell = await fs.readFile(path.join(root, 'apps/web/src/editor/Edito
 for (const marker of [
   'createCommandHistory',
   'createDebouncedAutosave',
-  'decodePaperPageDocument',
+  'decodePageDocument',
+  'liftPaperCommand',
   'P0QaPanel',
   'data-qa="undo"',
   'data-qa="redo"',
@@ -57,5 +58,6 @@ for (const marker of [
 
 const status = await fs.readFile(path.join(root, 'docs/STATUS.md'), 'utf8');
 if (!status.includes('P0.9')) throw new Error('STATUS.md does not reference P0.9');
+if (!status.includes('P1.')) throw new Error('STATUS.md does not preserve the post-P0 execution state');
 
 console.log('P0 contract validation passed: core files, locales, persistence/history wiring, QA harness.');

@@ -67,6 +67,8 @@
     "persistenceSaved": "ローカルに保存済み",
     "persistenceError": "ローカル保存に失敗しました",
     "persistenceRecoveryError": "ローカル下書きを復元できませんでした",
-    "persistenceUnavailable": "ローカル自動保存を利用できません"
+    "persistenceUnavailable": "ローカル自動保存を利用できません",
+    "historyDocumentStatus": "紙 {{layers}} · コンテンツ {{elements}} · 元に戻す {{undo}} · やり直し {{redo}}",
+    "selectHint": "選択モード · 1本指でコンテンツを移動 · ピンチまたは2本指でページを移動"
   }
 }

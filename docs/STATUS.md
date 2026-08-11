@@ -2,182 +2,94 @@
 
 ## Current
 
-- Project codename / repository name: `unbound-journal`
-- Milestone: `P0.9 — Mobile QA / P0 Acceptance`
+- Repository: `fryjin/unbound-journal`
+- Milestone: `P1.1 — Unified PageDocument + Content Stack Foundation`
+- State: implementation ready for upload / CI / deployed QA
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
+- Static preview: `https://unbound-journal.pages.dev/`
 
-## Completed in P0.0
+## P0
 
-- Monorepo/workspace skeleton
-- React + TypeScript + Vite web app configuration
-- Tier-1/Tier-2 i18n resource foundation
-- Mobile editor shell placeholder
-- Logical page constant: 1000 × 1400
-- Package boundaries for editor-core / paper-engine / renderer / storage / shared / ui
-- Baseline project documents copied into repository
-- Git initialized with `main`
+P0 Paper Engine is functionally accepted.
 
-## Completed in P0.1
+Completed:
 
-- Versioned `PaperRuntimeManifest` TypeScript contract
-- Paper pack index contract and runtime loader
-- Runtime manifest type guard
-- `paperVersionId` as the immutable work reference
-- 40-paper model-generated development starter pack
-  - 24 Pattern / tile fixtures
-  - 16 Full-sheet / cover fixtures
-- Per-paper runtime variants: original / editor / preview / thumbnail
-- English / Japanese / Korean / Traditional Chinese localized paper titles
-- Node-only `npm run papers:validate` pack validation
-- Editor Shell verifies `/papers/index.json` can be consumed at runtime
-- Model-generated source board retained for provenance
+- P0.0 Repository Bootstrap
+- P0.1 Paper Asset Contract + Starter Pack
+- P0.2 Page & Viewport
+- P0.3 Paper Renderer
+- P0.4 Paper Brush
+- P0.5 Paper Eraser
+- P0.6 Fill / Replace
+- P0.7 History / Undo / Redo
+- P0.8 Persistence / Autosave
+- P0.9 Mobile QA / P0 Acceptance
 
-## Completed in P0.2
+Evidence is recorded in `docs/P0.9_ACCEPTANCE_REPORT.md`.
 
-- Real `react-konva` Stage replaces the static page placeholder
-- Renderer-independent viewport math in `editor-core`
-- 1000 × 1400 logical page rendered through a transform Group
-- Responsive Fit calculation with page padding
-- Page ↔ screen coordinate conversion helpers
-- Pinch zoom from Fit to 4×
-- Simultaneous two-finger pan + pinch zoom
-- Pan boundary clamping and auto-centering on smaller axes
-- ResizeObserver handling with zoom-ratio preservation
-- Public `PageViewportHandle` for future Paper Brush coordinate mapping
-- Desktop wheel zoom for QA
-- Fit-to-page control and localized viewport guidance
-- DPR information surfaced for Retina QA; Konva owns backing-canvas pixel ratio
+The prior Android report used an embedded Chromium WebView (`wv`). Standalone Android Chrome remains a low-risk browser-label coverage item and must be included no later than P1 final acceptance.
 
-## Completed in P0.3
+## P1.0
 
-- Manifest-relative runtime asset URL resolution
-- Pattern / `tile` paper renderer using stable logical-page texture coordinates
-- Full-sheet / `cover` renderer with preserved aspect ratio
-- Ordered `PaperStack` renderer boundary for bottom → top paper layers
-- Image loading state and failure reporting
-- All Paper pixels remain inside the P0.2 logical-page clip
-- Development-only renderer selector for all 40 Starter Paper Pack assets
-- Localized paper preview names for Tier-1 and Tier-2 locales
-- Renderer keeps texture rendering independent from future Paper Mask implementation
+P1.0 planning / scope freeze is complete locally and included in the P1.1 patch because the P1.0-only planning patch was not uploaded to GitHub before P1.1 began.
 
-## Completed in P0.4
+Authoritative planning:
 
-- Single-finger Paper Brush input mapped through logical page coordinates
-- Paper selection is non-destructive and does not create empty layers
-- First completed stroke creates a PaperLayer only when needed
-- Same selected top paper receives additional mask strokes
-- Switching paper creates a new top layer on the next stroke
-- Vector PaperMaskStroke remains the document source of truth
-- Isolated per-layer Texture + Mask raster cache
-- Mutable renderer-only active stroke preview
-- Two-finger gesture cancels active paint and suppresses accidental restart
-- Adjustable hard round brush (60–360 logical units)
-- Desktop mouse painting for development QA
+- `docs/P1.0_CONTENT_STACK_PRODUCT_SHELL_PLAN.md`
+- `docs/P1_CONTENT_MODEL_SPEC.md`
+- `docs/EXECUTION_ROADMAP.md`
 
-## Completed in P0.5
+## P1.1 implementation
 
-- Renderer-independent hard-mask point visibility queries
-- Top-visible PaperLayer hit detection at erase gesture start
-- One erase gesture locks exactly one PaperLayer
-- Real-time erase preview mutates only the target layer raster cache
-- Lower PaperLayers are revealed but never modified by the same continuous erase gesture
-- New gesture performs a fresh top-visible hit test
-- Vector erase strokes append to the locked layer on gesture end
-- Erase cancellation restores the target from committed mask history
-- Second-finger transition cancels uncommitted erasing before viewport zoom/pan
-- Separate Lay / Erase Paper tool modes
-- Adjustable hard round eraser (60–360 logical units)
-- Tier-1 + Tier-2 localized Paper Eraser UI
+Implemented in the current patch:
 
-## Completed in P0.6
+- new `@unbound-journal/document-model` package
+- `PageDocumentV2` containing `paperLayers[]` + `elements[]`
+- strict V2 decode plus deterministic P0 V1 migration
+- existing P0 IndexedDB key retained; migrated document autosaves back as V2
+- editor History state upgraded from `PaperLayer[]` to complete `PageDocument`
+- accepted Paper Commands lifted into unified document history without rewriting Paper Engine
+- renderer-independent `ContentElement` / `ElementTransform` foundation
+- renderer-independent rotated/scaled placeholder hit testing
+- generic Add / Remove / Transform / Reorder content commands
+- `ContentStack` rendered above all Paper rendering
+- imperative renderer-only content drag preview; commit only at pointer end
+- explicit QA Select mode and selected-element session state
+- second-finger cancellation path shared with existing viewport gesture router
+- P1.1 QA harness extensions for V2 round-trip, P0 migration, content fixtures and ordering
+- current-milestone CI command (`qa:current`)
 
-- Renderer-independent `createFillPageStroke()` using the existing vector paint-mask contract
-- Fill Page reuses the same top PaperLayer when its paper matches the selected paper
-- Fill Page creates a new top layer only when the selected paper differs
-- Full-page masks remain compatible with erasing and top-visible hit testing
-- `replacePaperLayerFromAsset()` preserves layer identity and complete mask history
-- Replace changes `paperVersionId`, renderer asset and texture defaults without changing layer order or count
-- P0.6 UI replaces only the top PaperLayer; a formal layer manager remains out of scope
-- Fill / Replace cancel uncommitted input previews and are disabled in Erase mode
-- Tier-1 + Tier-2 localized Fill / Replace controls
+## P1.1 validation completed locally
 
+- core/document/storage strict TypeScript: PASS
+- ContentStack structural TypeScript: PASS
+- EditorShell + QA structural TypeScript: PASS
+- P1.1 runtime model assertions: PASS
+- Paper Pack validation: PASS
+- full npm workspace install/build: delegated to GitHub Actions because local public npm install timed out
 
-## Completed in P0.7
+## Cloudflare
 
-- Generic renderer-independent Command History in `editor-core`
-- 100-operation default Undo history depth
-- Standard Redo branch invalidation after new edits
-- Reversible Paper commands for Paint / Erase / Fill / AddLayer / Replace / Clear
-- One completed gesture equals one History entry
-- Pure `PaperLayer[]` document state separated from runtime `PaperRuntimeAsset` cache
-- Undo / Redo cancel active uncommitted renderer previews before transition
-- Mobile HUD Undo / Redo controls
-- Desktop `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`, and Windows `Ctrl+Y` QA shortcuts
-- Tier-1 + Tier-2 localized History controls
+- Pages static deployment: ACTIVE
+- Workers: deferred
+- D1: deferred
+- R2: deferred
+- accounts / cloud sync: deferred
 
-## Completed in P0.8
+No backend Cloudflare service is required for P1.1.
 
-- Versioned renderer-independent `PaperPageDocumentV1` persistence envelope
-- Strict persisted-document validation / future migration boundary
-- Native IndexedDB adapter in `packages/storage`
-- 450 ms debounced autosave with serialized write ordering
-- Autosave only after committed History transitions, never pointer movement
-- Startup restore before editing is enabled
-- Restored document becomes a fresh History baseline
-- Runtime paper assets rehydrate from pinned `paperVersionId` values after reload
-- Best-effort pending-save flush on `pagehide` / hidden visibility state
-- IndexedDB unavailable / invalid document / save-error graceful fallback
-- Local save / restore status surfaced in all supported locales
-- Cloudflare remains deferred
+## Design engineering
 
-## P0.9 QA implementation ready
+`emilkowalski/skills` is approved as a later Design Engineering Review reference, primarily from P1.6 onward. It does not override frozen interaction/data rules.
 
-- Query-gated browser/device QA harness at `?qa=1`
-- Runtime IndexedDB round-trip check in an isolated QA database
-- Runtime persisted-document encode/decode check
-- Runtime PaperLayer ↔ PaperRuntimeAsset hydration diagnostics
-- Viewport / DPR / touch / History / persistence diagnostics
-- Copyable QA report and manual device checklist
-- One-click five-full-layer stress scenario using real PaperLayers and History commands
-- Stable `data-qa` selectors on core P0 controls
-- Dependency-free `npm run qa:p0:contracts` validator
-- GitHub Actions `P0 validation` workflow for normal-environment install / typecheck / build
-- P0.9 mobile QA plan and acceptance report
+## Next gate
 
-**P0 final acceptance remains pending** until CI and physical-device QA are complete.
+After this patch is uploaded:
 
-## Deployment status
-
-- Cloudflare deployment: **not started**
-- A static HTTPS preview is **now required to finish P0.9 physical-device QA**
-- Cloudflare Pages is sufficient for P0.9; Workers / D1 / R2 remain out of scope
-- Build contract: Node 22 / `npm run build` / output `apps/web/dist`
-- After deployment, use `?qa=1` on the preview URL for iPhone / Android QA
-
-## Starter pack quality boundary
-
-The P0.1 assets are development fixtures generated from the model image-generation workflow. They intentionally validate asset diversity and runtime contracts; they are not final marketplace-quality creator assets.
-
-Future official or creator assets will enter through the same PaperRuntimeManifest contract with higher-quality source masters.
-
-## Environment limitation
-
-The generation environment still cannot resolve all public npm packages through its configured registry. P0.9 therefore delegates the authoritative full install / typecheck / build gate to GitHub Actions after this patch is uploaded.
-
-The dependency-free paper-pack validator remains available through:
-
-```bash
-npm run papers:validate
-```
-
-## Next
-
-`P0.9 — Acceptance closeout`
-
-1. Upload the P0.9 patch so GitHub Actions can run the full install / typecheck / build
-2. Deploy the same `main` build to a static HTTPS preview (Cloudflare Pages is sufficient)
-3. Run `/?qa=1` on Desktop Chrome, iPhone Safari, and Android Chrome
-4. Record copied QA reports and close any blocker defects
-5. Run the final novice-user acceptance task
-6. Mark P0 Paper Engine accepted only after all gates in `docs/P0.9_ACCEPTANCE_REPORT.md` pass
+1. verify actual GitHub `main`
+2. require GitHub Actions `Current validation` green
+3. allow Cloudflare Pages auto-deploy
+4. run `/?qa=1` P1.1 acceptance flow
+5. close blocker regressions
+6. enter `P1.2 — Ink Engine`

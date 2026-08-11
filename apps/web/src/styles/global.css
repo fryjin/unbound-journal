@@ -776,3 +776,8 @@ button {
     inset-block-end: calc(78px + env(safe-area-inset-bottom));
   }
 }
+
+/* P1.1: paper controls remain visible for continuity but are passive while QA Select mode owns one-finger input. */
+.paper-brush-panel.is-inactive {
+  opacity: 0.72;
+}

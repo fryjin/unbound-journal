@@ -57,7 +57,7 @@ function decodeStroke(value: unknown): PaperMaskStroke | null {
   };
 }
 
-function decodeLayer(value: unknown): PaperLayer | null {
+export function decodePaperLayer(value: unknown): PaperLayer | null {
   if (!isRecord(value)) return null;
   if (!isNonEmptyString(value.id) || !isNonEmptyString(value.paperVersionId)) return null;
   if (!isNonEmptyString(value.createdAt)) return null;
@@ -102,7 +102,7 @@ function decodeSize(value: unknown): Size | null {
   return { width: value.width, height: value.height };
 }
 
-function clonePaperLayer(layer: PaperLayer): PaperLayer {
+export function clonePaperLayer(layer: PaperLayer): PaperLayer {
   return {
     ...layer,
     texture: { ...layer.texture },
@@ -159,7 +159,7 @@ export function decodePaperPageDocument(value: unknown): PaperDocumentDecodeResu
 
   const paperLayers: PaperLayer[] = [];
   for (const rawLayer of value.paperLayers) {
-    const layer = decodeLayer(rawLayer);
+    const layer = decodePaperLayer(rawLayer);
     if (!layer) return { ok: false, reason: 'invalid' };
     paperLayers.push(layer);
   }

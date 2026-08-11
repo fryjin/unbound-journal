@@ -29,3 +29,9 @@ export {
   type PaperStackHandle,
   type PaperStackProps,
 } from './PaperStack';
+
+export {
+  ContentStack,
+  type ContentStackHandle,
+  type ContentStackProps,
+} from './ContentStack';
