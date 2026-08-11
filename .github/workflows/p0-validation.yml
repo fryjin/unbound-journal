@@ -1,4 +1,4 @@
-name: P0 validation
+name: Current validation
 
 on:
   push:
@@ -21,5 +21,5 @@ jobs:
       - name: Install workspace dependencies
         run: npm install
 
-      - name: Validate P0
-        run: npm run qa:p0
+      - name: Validate current milestone
+        run: npm run qa:current
