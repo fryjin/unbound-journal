@@ -178,3 +178,11 @@ P1.1 upgrades the editor from a paper-only history/persistence state to a render
 The editor now uses one `CommandHistory<PageDocument>`: accepted Paper Commands are lifted into the unified document, while generic Content commands provide Add / Remove / Transform / Reorder operations. A QA-only placeholder element validates topmost hit testing, renderer-only drag preview, z-order, Undo/Redo, reload and two-finger cancellation before real Ink/Image/Text content lands.
 
 Use `/?qa=1` on the deployed preview for the P1.1 acceptance harness. See `docs/P1.1_UNIFIED_DOCUMENT_CONTENT_STACK_SPEC.md` and `docs/P1.1_ACCEPTANCE_PLAN.md`.
+
+## P1.2 Ink Engine
+
+P1.2 adds the first real Content Stack element: vector Ink. Handwriting and Drawing are separate user-facing modes backed by the same engine. Each completed gesture creates one `InkElement`; pointermove stays renderer-only and produces no document/history writes.
+
+Ink Eraser is independent from Paper Eraser. One Ink eraser gesture may partially erase multiple existing InkElements while leaving Paper and other Content untouched. The canonical result remains vector data: an erased stroke can retain multiple disjoint `paths[]` under the same element id and z-order.
+
+The P1.2 QA harness adds an Ink vector-erase self-check and a `+20 ink strokes` stress fixture. See `docs/P1.2_INK_ENGINE_SPEC.md` and `docs/P1.2_ACCEPTANCE_PLAN.md`.

@@ -1,9 +1,19 @@
-import { LOGICAL_PAGE_SIZE, type Size } from '@unbound-journal/editor-core';
+import {
+  LOGICAL_PAGE_SIZE,
+  type InkStyle,
+  type Size,
+} from '@unbound-journal/editor-core';
 import {
   createPageDocument,
   decodePageDocument,
   type PageDocument,
 } from '@unbound-journal/document-model';
+import {
+  countInkElements,
+  countInkPaths,
+  createInkElement,
+  eraseInkElements,
+} from '@unbound-journal/ink-engine';
 import {
   createPaperPageDocument,
   type PaperHistoryState,
@@ -31,6 +41,8 @@ export interface P0QaRuntimeSnapshot {
   layerCount: number;
   strokeCount: number;
   elementCount: number;
+  inkElementCount: number;
+  inkPathCount: number;
   renderedLayerCount: number;
   undoCount: number;
   redoCount: number;
@@ -72,6 +84,8 @@ export function createP0QaRuntimeSnapshot(input: RunP0QaSelfCheckInput): P0QaRun
     layerCount: input.document.paperLayers.length,
     strokeCount: countStrokes(input.document.paperLayers),
     elementCount: input.document.elements.length,
+    inkElementCount: countInkElements(input.document.elements),
+    inkPathCount: countInkPaths(input.document.elements),
     renderedLayerCount: input.renderedLayerCount,
     undoCount: input.undoCount,
     redoCount: input.redoCount,
@@ -144,6 +158,8 @@ function runDocumentRoundTrip(document: PageDocument): P0QaCheckResult {
     decoded.ok &&
     decoded.document.paperLayers.length === document.paperLayers.length &&
     decoded.document.elements.length === document.elements.length &&
+    countInkElements(decoded.document.elements) === countInkElements(document.elements) &&
+    countInkPaths(decoded.document.elements) === countInkPaths(document.elements) &&
     countStrokes(decoded.document.paperLayers) === countStrokes(document.paperLayers);
 
   return {
@@ -151,7 +167,7 @@ function runDocumentRoundTrip(document: PageDocument): P0QaCheckResult {
     label: 'Unified PageDocument round-trip',
     status: passed ? 'pass' : 'fail',
     detail: passed
-      ? `${document.paperLayers.length} paper layers / ${document.elements.length} content elements round-tripped as schema v2.`
+      ? `${document.paperLayers.length} paper / ${document.elements.length} content / ${countInkElements(document.elements)} ink round-tripped as schema v2.`
       : 'Unified PageDocument did not round-trip cleanly.',
   };
 }
@@ -180,6 +196,55 @@ function runP0MigrationCheck(document: PageDocument): P0QaCheckResult {
     detail: passed
       ? `${document.paperLayers.length} legacy paper layers migrated to PageDocument v2 without content fabrication.`
       : 'Legacy PaperPageDocumentV1 migration failed.',
+  };
+}
+
+function runInkVectorEraseCheck(): P0QaCheckResult {
+  const now = new Date().toISOString();
+  const style: InkStyle = {
+    color: '#111111',
+    size: 12,
+    opacity: 1,
+    tool: 'pen',
+  };
+  const ink = createInkElement(
+    'qa-ink',
+    'handwriting',
+    style,
+    [
+      { x: 100, y: 300 },
+      { x: 500, y: 300 },
+    ],
+    now,
+  );
+  if (!ink) {
+    return {
+      id: 'ink-vector-erase',
+      label: 'Ink vector erase geometry',
+      status: 'fail',
+      detail: 'Could not create QA ink fixture.',
+    };
+  }
+
+  const erased = eraseInkElements(
+    [ink],
+    [
+      { x: 300, y: 260 },
+      { x: 300, y: 340 },
+    ],
+    64,
+    now,
+  );
+  const remaining = erased.elements.find((element) => element.type === 'ink');
+  const passed = erased.changed && remaining?.type === 'ink' && remaining.paths.length >= 2;
+
+  return {
+    id: 'ink-vector-erase',
+    label: 'Ink vector erase geometry',
+    status: passed ? 'pass' : 'fail',
+    detail: passed
+      ? `One vector stroke split into ${remaining.paths.length} retained paths without raster persistence.`
+      : 'Partial ink erasing did not preserve disjoint vector paths as expected.',
   };
 }
 
@@ -231,6 +296,7 @@ export async function runP0QaSelfCheck(
       runViewportCheck(input.viewportSize, input.devicePixelRatio),
       runDocumentRoundTrip(input.document),
       runP0MigrationCheck(input.document),
+      runInkVectorEraseCheck(),
       runRendererHydrationCheck(input.document.paperLayers, input.renderedLayerCount),
       runPersistenceStateCheck(input.persistenceStatus),
       indexedDbCheck,

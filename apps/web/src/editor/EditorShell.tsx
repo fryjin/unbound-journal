@@ -12,15 +12,24 @@ import {
   translateElementTransform,
   undoCommand,
   type CommandHistory,
+  type ContentElement,
   type ElementTransform,
+  type InkElement,
+  type InkMode,
+  type InkStyle,
+  type InkTool,
   type Point,
 } from '@unbound-journal/editor-core';
 import {
   ContentStack,
+  InkEraserPreview,
+  InkStrokePreview,
   PageViewport,
   PaperBrushPreview,
   PaperStack,
   type ContentStackHandle,
+  type InkEraserPreviewHandle,
+  type InkStrokePreviewHandle,
   type PageInputEvent,
   type PageViewportHandle,
   type PageViewportState,
@@ -51,6 +60,7 @@ import {
   createPageDocument,
   createRemoveContentElementCommand,
   createReorderContentElementCommand,
+  createReplaceContentElementsCommand,
   createTransformContentElementCommand,
   decodePageDocument,
   liftPaperCommand,
@@ -58,6 +68,12 @@ import {
   type PageDocument,
   type PageDocumentCommand,
 } from '@unbound-journal/document-model';
+import {
+  countInkElements,
+  countInkPaths,
+  createInkElement,
+  eraseInkElements,
+} from '@unbound-journal/ink-engine';
 import {
   createDebouncedAutosave,
   createIndexedDbDocumentStorage,
@@ -80,13 +96,22 @@ import { isP0QaMode } from './qa/p0-qa';
 const tools = ['paper', 'media', 'text', 'draw'] as const;
 const DEFAULT_BRUSH_SIZE = 180;
 const DEFAULT_ERASER_SIZE = 180;
+const DEFAULT_HANDWRITING_SIZE = 14;
+const DEFAULT_DRAWING_SIZE = 44;
+const DEFAULT_INK_ERASER_SIZE = 84;
 const MIN_TOOL_SIZE = 60;
 const MAX_TOOL_SIZE = 360;
+const MIN_HANDWRITING_SIZE = 4;
+const MAX_HANDWRITING_SIZE = 36;
+const MIN_DRAWING_SIZE = 8;
+const MAX_DRAWING_SIZE = 120;
+const MIN_INK_ERASER_SIZE = 24;
+const MAX_INK_ERASER_SIZE = 240;
 const LOCAL_DOCUMENT_ID = 'p0-local-page'; // Stable P0 storage key; payload migrates to PageDocument V2.
 const AUTOSAVE_DELAY_MS = 450;
 
 type PaperToolMode = 'brush' | 'eraser';
-type InteractionMode = 'paper' | 'select';
+type InteractionMode = 'paper' | 'select' | 'handwriting' | 'drawing' | 'ink-erase';
 
 type ActiveContentDrag = {
   elementId: string;
@@ -94,6 +119,13 @@ type ActiveContentDrag = {
   initialTransform: ElementTransform;
   lastTransform: ElementTransform;
   initialUpdatedAt: string;
+};
+
+type ActiveInkErase = {
+  points: Point[];
+  size: number;
+  previewElements: ContentElement[];
+  changed: boolean;
 };
 type PersistenceStatus =
   | 'loading'
@@ -126,6 +158,10 @@ export function EditorShell() {
   const brushPreviewRef = useRef<PaperBrushPreviewHandle | null>(null);
   const paperStackRef = useRef<PaperStackHandle | null>(null);
   const contentStackRef = useRef<ContentStackHandle | null>(null);
+  const inkStrokePreviewRef = useRef<InkStrokePreviewHandle | null>(null);
+  const inkEraserPreviewRef = useRef<InkEraserPreviewHandle | null>(null);
+  const activeInkStrokeRef = useRef(false);
+  const activeInkEraseRef = useRef<ActiveInkErase | null>(null);
   const strokeAssetRef = useRef<PaperRuntimeAsset | null>(null);
   const activeEraseLayerIdRef = useRef<string | null>(null);
   const activeContentDragRef = useRef<ActiveContentDrag | null>(null);
@@ -152,6 +188,12 @@ export function EditorShell() {
   const [paperToolMode, setPaperToolMode] = useState<PaperToolMode>('brush');
   const [brushSize, setBrushSize] = useState(DEFAULT_BRUSH_SIZE);
   const [eraserSize, setEraserSize] = useState(DEFAULT_ERASER_SIZE);
+  const [inkTool, setInkTool] = useState<InkTool>('pen');
+  const [inkColor, setInkColor] = useState('#35312c');
+  const [inkOpacity, setInkOpacity] = useState(1);
+  const [handwritingSize, setHandwritingSize] = useState(DEFAULT_HANDWRITING_SIZE);
+  const [drawingSize, setDrawingSize] = useState(DEFAULT_DRAWING_SIZE);
+  const [inkEraserSize, setInkEraserSize] = useState(DEFAULT_INK_ERASER_SIZE);
   const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>('loading');
   const [qaStressBusy, setQaStressBusy] = useState(false);
   const [interactionMode, setInteractionMode] = useState<InteractionMode>('paper');
@@ -355,10 +397,26 @@ export function EditorShell() {
   }, [paperPack, selectedManifestUrl]);
 
   const selectedTitle = selectedEntry?.title[locale] ?? selectedEntry?.title.en ?? '';
+  const currentInkMode: InkMode = interactionMode === 'drawing' ? 'drawing' : 'handwriting';
+  const currentInkSize = currentInkMode === 'drawing' ? drawingSize : handwritingSize;
+  const currentInkStyle = useMemo<InkStyle>(
+    () => ({
+      color: inkColor,
+      size: currentInkSize,
+      opacity: inkOpacity,
+      tool: inkTool,
+    }),
+    [currentInkSize, inkColor, inkOpacity, inkTool],
+  );
+  const inkElementCount = useMemo(() => countInkElements(contentElements), [contentElements]);
+  const inkPathCount = useMemo(() => countInkPaths(contentElements), [contentElements]);
 
   const cancelActiveInput = useCallback(() => {
     brushPreviewRef.current?.cancelStroke();
     paperStackRef.current?.cancelErase();
+    inkStrokePreviewRef.current?.cancelStroke();
+    inkEraserPreviewRef.current?.cancelErase();
+    contentStackRef.current?.restoreInkPreview();
     const activeContentDrag = activeContentDragRef.current;
     if (activeContentDrag) {
       contentStackRef.current?.restoreElementTransform(activeContentDrag.elementId);
@@ -366,6 +424,8 @@ export function EditorShell() {
     strokeAssetRef.current = null;
     activeEraseLayerIdRef.current = null;
     activeContentDragRef.current = null;
+    activeInkStrokeRef.current = false;
+    activeInkEraseRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -419,6 +479,11 @@ export function EditorShell() {
       if (interactionMode === 'select') {
         brushPreviewRef.current?.cancelStroke();
         paperStackRef.current?.cancelErase();
+        inkStrokePreviewRef.current?.cancelStroke();
+        inkEraserPreviewRef.current?.cancelErase();
+        contentStackRef.current?.restoreInkPreview();
+        activeInkStrokeRef.current = false;
+        activeInkEraseRef.current = null;
         strokeAssetRef.current = null;
         activeEraseLayerIdRef.current = null;
 
@@ -433,6 +498,55 @@ export function EditorShell() {
           lastTransform: { ...hit.transform },
           initialUpdatedAt: hit.updatedAt,
         };
+        return;
+      }
+
+      if (interactionMode === 'handwriting' || interactionMode === 'drawing') {
+        brushPreviewRef.current?.cancelStroke();
+        paperStackRef.current?.cancelErase();
+        inkEraserPreviewRef.current?.cancelErase();
+        contentStackRef.current?.restoreInkPreview();
+        strokeAssetRef.current = null;
+        activeEraseLayerIdRef.current = null;
+        activeInkEraseRef.current = null;
+        setSelectedElementId(null);
+        const started =
+          inkStrokePreviewRef.current?.beginStroke(
+            event.pagePoint,
+            interactionMode,
+            currentInkStyle,
+          ) ?? false;
+        activeInkStrokeRef.current = started;
+        return;
+      }
+
+      if (interactionMode === 'ink-erase') {
+        brushPreviewRef.current?.cancelStroke();
+        paperStackRef.current?.cancelErase();
+        inkStrokePreviewRef.current?.cancelStroke();
+        strokeAssetRef.current = null;
+        activeEraseLayerIdRef.current = null;
+        activeInkStrokeRef.current = false;
+        setSelectedElementId(null);
+
+        const started = inkEraserPreviewRef.current?.beginErase(event.pagePoint, inkEraserSize) ?? false;
+        if (!started) return;
+        const preview = eraseInkElements(
+          pageDocumentRef.current.elements,
+          [event.pagePoint],
+          inkEraserSize,
+          new Date().toISOString(),
+        );
+        const active: ActiveInkErase = {
+          points: [{ ...event.pagePoint }],
+          size: inkEraserSize,
+          previewElements: preview.elements,
+          changed: preview.changed,
+        };
+        activeInkEraseRef.current = active;
+        contentStackRef.current?.previewInkElements(
+          active.previewElements.filter((element): element is InkElement => element.type === 'ink'),
+        );
         return;
       }
 
@@ -457,7 +571,7 @@ export function EditorShell() {
       const started = brushPreviewRef.current?.beginStroke(event.pagePoint, brushSize) ?? false;
       strokeAssetRef.current = started ? paperAsset : null;
     },
-    [brushSize, eraserSize, interactionMode, paperAsset, paperToolMode],
+    [brushSize, currentInkStyle, eraserSize, inkEraserSize, interactionMode, paperAsset, paperToolMode],
   );
 
   const handlePageInputMove = useCallback((event: PageInputEvent) => {
@@ -469,6 +583,36 @@ export function EditorShell() {
       });
       activeContentDrag.lastTransform = nextTransform;
       contentStackRef.current?.previewElementTransform(activeContentDrag.elementId, nextTransform);
+      return;
+    }
+
+    if (activeInkStrokeRef.current) {
+      inkStrokePreviewRef.current?.appendPoint(event.pagePoint);
+      return;
+    }
+
+    const activeInkErase = activeInkEraseRef.current;
+    if (activeInkErase) {
+      const previous = activeInkErase.points[activeInkErase.points.length - 1];
+      if (previous) {
+        const distance = Math.hypot(event.pagePoint.x - previous.x, event.pagePoint.y - previous.y);
+        if (distance >= Math.max(1, activeInkErase.size * 0.06)) {
+          const nextPoint = { ...event.pagePoint };
+          activeInkErase.points.push(nextPoint);
+          inkEraserPreviewRef.current?.appendPoint(nextPoint);
+          const preview = eraseInkElements(
+            activeInkErase.previewElements,
+            [previous, nextPoint],
+            activeInkErase.size,
+            new Date().toISOString(),
+          );
+          activeInkErase.previewElements = preview.elements;
+          activeInkErase.changed ||= preview.changed;
+          contentStackRef.current?.previewInkElements(
+            activeInkErase.previewElements.filter((element): element is InkElement => element.type === 'ink'),
+          );
+        }
+      }
       return;
     }
 
@@ -501,6 +645,61 @@ export function EditorShell() {
               activeContentDrag.lastTransform,
               activeContentDrag.initialUpdatedAt,
               new Date().toISOString(),
+            ),
+          );
+        }
+        return;
+      }
+
+      if (activeInkStrokeRef.current) {
+        if (event) inkStrokePreviewRef.current?.appendPoint(event.pagePoint);
+        const draft = inkStrokePreviewRef.current?.finishStroke() ?? null;
+        activeInkStrokeRef.current = false;
+        if (!draft) return;
+        const now = new Date().toISOString();
+        const element = createInkElement(
+          createId('ink'),
+          draft.mode,
+          draft.style,
+          draft.points,
+          now,
+        );
+        if (!element) return;
+        commitPageCommand(createAddContentElementCommand(createId('command'), element));
+        return;
+      }
+
+      const activeInkErase = activeInkEraseRef.current;
+      if (activeInkErase) {
+        if (event) {
+          const previous = activeInkErase.points[activeInkErase.points.length - 1];
+          if (!previous || Math.hypot(event.pagePoint.x - previous.x, event.pagePoint.y - previous.y) > 0.5) {
+            const nextPoint = { ...event.pagePoint };
+            if (previous) {
+              const preview = eraseInkElements(
+                activeInkErase.previewElements,
+                [previous, nextPoint],
+                activeInkErase.size,
+                new Date().toISOString(),
+              );
+              activeInkErase.previewElements = preview.elements;
+              activeInkErase.changed ||= preview.changed;
+            }
+            activeInkErase.points.push(nextPoint);
+            inkEraserPreviewRef.current?.appendPoint(nextPoint);
+          }
+        }
+        inkEraserPreviewRef.current?.finishErase();
+        activeInkEraseRef.current = null;
+        contentStackRef.current?.restoreInkPreview();
+        const currentElements = pageDocumentRef.current.elements;
+        if (activeInkErase.changed) {
+          commitPageCommand(
+            createReplaceContentElementsCommand(
+              createId('command'),
+              currentElements,
+              activeInkErase.previewElements,
+              'ink.erase',
             ),
           );
         }
@@ -673,6 +872,49 @@ export function EditorShell() {
     setInteractionMode('select');
   }, [cancelActiveInput, commitPageCommand]);
 
+  const seedP12InkStress = useCallback(() => {
+    if (!persistenceReadyRef.current) return;
+    cancelActiveInput();
+    const before = pageDocumentRef.current.elements;
+    const additions: InkElement[] = [];
+    const now = new Date().toISOString();
+
+    for (let row = 0; row < 20; row += 1) {
+      const points: Point[] = [];
+      for (let step = 0; step <= 12; step += 1) {
+        const x = 110 + step * 62;
+        const y = 140 + row * 56 + Math.sin(step * 0.9 + row * 0.35) * 18;
+        points.push({ x, y });
+      }
+      const style: InkStyle = {
+        color: row % 3 === 0 ? '#35312c' : row % 3 === 1 ? '#5f6570' : '#6f554f',
+        size: row % 2 === 0 ? 12 : 28,
+        opacity: row % 2 === 0 ? 1 : 0.72,
+        tool: row % 2 === 0 ? 'pen' : 'marker',
+      };
+      const element = createInkElement(
+        createId(`qa-ink-${row}`),
+        row % 2 === 0 ? 'handwriting' : 'drawing',
+        style,
+        points,
+        now,
+      );
+      if (element) additions.push(element);
+    }
+
+    if (additions.length === 0) return;
+    commitPageCommand(
+      createReplaceContentElementsCommand(
+        createId('qa-command'),
+        before,
+        [...before, ...additions],
+        'qa.ink-stress',
+      ),
+    );
+    setInteractionMode('handwriting');
+    setSelectedElementId(null);
+  }, [cancelActiveInput, commitPageCommand]);
+
   const transformSelectedQaElement = useCallback(
     (kind: 'rotate' | 'scale') => {
       const document = pageDocumentRef.current;
@@ -736,7 +978,7 @@ export function EditorShell() {
       if (nextMode === interactionMode) return;
       cancelActiveInput();
       setInteractionMode(nextMode);
-      if (nextMode === 'paper') setSelectedElementId(null);
+      if (nextMode !== 'select') setSelectedElementId(null);
     },
     [cancelActiveInput, interactionMode],
   );
@@ -750,6 +992,16 @@ export function EditorShell() {
       setPaperToolMode(nextMode);
     },
     [cancelActiveInput, interactionMode, paperToolMode],
+  );
+
+  const changeInkMode = useCallback(
+    (nextMode: 'handwriting' | 'drawing' | 'ink-erase') => {
+      if (nextMode === interactionMode) return;
+      cancelActiveInput();
+      setInteractionMode(nextMode);
+      setSelectedElementId(null);
+    },
+    [cancelActiveInput, interactionMode],
   );
 
   const paperReady = Boolean(paperAsset && paperTextureStatus === 'ready' && !paperAssetError);
@@ -772,9 +1024,15 @@ export function EditorShell() {
   const hintKey =
     interactionMode === 'select'
       ? 'editor.selectHint'
-      : paperToolMode === 'brush'
-        ? 'editor.paperBrushHint'
-        : 'editor.paperEraserHint';
+      : interactionMode === 'handwriting'
+        ? 'editor.handwritingHint'
+        : interactionMode === 'drawing'
+          ? 'editor.drawingHint'
+          : interactionMode === 'ink-erase'
+            ? 'editor.inkEraserHint'
+            : paperToolMode === 'brush'
+              ? 'editor.paperBrushHint'
+              : 'editor.paperEraserHint';
   const persistenceLabelKey =
     persistenceStatus === 'recovery-error'
       ? 'editor.persistenceRecoveryError'
@@ -817,6 +1075,8 @@ export function EditorShell() {
             elements={contentElements}
             selectedElementId={selectedElementId}
           />
+          <InkStrokePreview ref={inkStrokePreviewRef} />
+          <InkEraserPreview ref={inkEraserPreviewRef} />
         </PageViewport>
 
         <div className="viewport-hud" aria-live="polite">
@@ -875,129 +1135,244 @@ export function EditorShell() {
           </div>
         </div>
 
-        <div className={`paper-brush-panel ${interactionMode === 'select' ? 'is-inactive' : ''}`} aria-label={t('editor.paperBrushPanelLabel')}>
-          <div className="paper-tool-mode" role="group" aria-label={t('editor.paperToolModeLabel')}>
-            <button
-              type="button"
-              className={paperToolMode === 'brush' ? 'is-active' : ''}
-              aria-pressed={paperToolMode === 'brush'}
-              data-qa="mode-lay"
-              onClick={() => changePaperToolMode('brush')}
-            >
-              {t('editor.paperToolLay')}
-            </button>
-            <button
-              type="button"
-              className={paperToolMode === 'eraser' ? 'is-active' : ''}
-              aria-pressed={paperToolMode === 'eraser'}
-              data-qa="mode-erase"
-              onClick={() => changePaperToolMode('eraser')}
-            >
-              {t('editor.paperToolErase')}
-            </button>
+        {interactionMode === 'paper' || interactionMode === 'select' ? (
+          <div
+            className={`paper-brush-panel ${interactionMode === 'select' ? 'is-inactive' : ''}`}
+            aria-label={t('editor.paperBrushPanelLabel')}
+          >
+            <div className="paper-tool-mode" role="group" aria-label={t('editor.paperToolModeLabel')}>
+              <button
+                type="button"
+                className={paperToolMode === 'brush' ? 'is-active' : ''}
+                aria-pressed={paperToolMode === 'brush'}
+                data-qa="mode-lay"
+                onClick={() => changePaperToolMode('brush')}
+              >
+                {t('editor.paperToolLay')}
+              </button>
+              <button
+                type="button"
+                className={paperToolMode === 'eraser' ? 'is-active' : ''}
+                aria-pressed={paperToolMode === 'eraser'}
+                data-qa="mode-erase"
+                onClick={() => changePaperToolMode('eraser')}
+              >
+                {t('editor.paperToolErase')}
+              </button>
+            </div>
+
+            <div className="paper-brush-panel__paper">
+              <span>
+                {paperToolMode === 'brush'
+                  ? t('editor.paperBrushSelected')
+                  : t('editor.paperEraserTarget')}
+              </span>
+              <strong>
+                {paperToolMode === 'brush'
+                  ? selectedTitle || t('editor.paperPreviewLoading')
+                  : t('editor.paperEraserTopVisible')}
+              </strong>
+              <small className={paperToolMode === 'brush' && paperReady ? 'is-ready' : ''}>
+                {paperToolMode === 'eraser'
+                  ? t('editor.paperEraserGestureLock')
+                  : paperAssetError || paperTextureStatus === 'error'
+                    ? t('editor.paperPreviewError')
+                    : paperReady
+                      ? t('editor.paperBrushReady')
+                      : t('editor.paperPreviewLoading')}
+              </small>
+            </div>
+
+            {paperPack ? (
+              <select
+                value={selectedManifestUrl ?? ''}
+                disabled={interactionMode !== 'paper' || paperToolMode === 'eraser' || !persistenceReady}
+                onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+                  cancelActiveInput();
+                  setSelectedManifestUrl(event.target.value);
+                }}
+                aria-label={t('editor.paperPreviewSelect')}
+                data-qa="paper-select"
+              >
+                <optgroup label={t('editor.paperTypePattern')}>
+                  {groupedPapers.pattern.map((paper) => (
+                    <option key={paper.paperVersionId} value={paper.manifest}>
+                      {paper.title[locale] ?? paper.title.en}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={t('editor.paperTypeFullSheet')}>
+                  {groupedPapers.fullSheet.map((paper) => (
+                    <option key={paper.paperVersionId} value={paper.manifest}>
+                      {paper.title[locale] ?? paper.title.en}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+            ) : null}
+
+            <label className="paper-brush-panel__size">
+              <span>
+                {paperToolMode === 'brush'
+                  ? t('editor.paperBrushSize')
+                  : t('editor.paperEraserSize')}{' '}
+                <strong>{activeToolSize}</strong>
+              </span>
+              <input
+                type="range"
+                min={MIN_TOOL_SIZE}
+                max={MAX_TOOL_SIZE}
+                step={10}
+                value={activeToolSize}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  const value = Number(event.target.value);
+                  if (paperToolMode === 'brush') setBrushSize(value);
+                  else setEraserSize(value);
+                }}
+              />
+            </label>
+
+            <div className="paper-brush-panel__actions">
+              <button
+                type="button"
+                disabled={!canFillPage}
+                onClick={fillPage}
+                aria-label={t('editor.paperFillPageAria')}
+                data-qa="fill-page"
+              >
+                {t('editor.paperFillPage')}
+              </button>
+              <button
+                type="button"
+                disabled={!canReplaceTopLayer}
+                onClick={replaceTopLayer}
+                aria-label={t('editor.paperReplaceTopAria')}
+                data-qa="replace-top"
+              >
+                {t('editor.paperReplaceTop')}
+              </button>
+              <button
+                type="button"
+                className="paper-brush-panel__clear"
+                disabled={!persistenceReady || interactionMode !== 'paper' || paperLayers.length === 0}
+                onClick={clearPage}
+                data-qa="clear-page"
+              >
+                {t('editor.paperBrushClear')}
+              </button>
+            </div>
           </div>
+        ) : (
+          <div className="ink-panel" aria-label={t('editor.inkPanelLabel')}>
+            <div className="ink-mode" role="group" aria-label={t('editor.inkModeLabel')}>
+              <button
+                type="button"
+                className={interactionMode === 'handwriting' ? 'is-active' : ''}
+                onClick={() => changeInkMode('handwriting')}
+                data-qa="mode-handwriting"
+              >
+                {t('editor.inkModeHandwriting')}
+              </button>
+              <button
+                type="button"
+                className={interactionMode === 'drawing' ? 'is-active' : ''}
+                onClick={() => changeInkMode('drawing')}
+                data-qa="mode-drawing"
+              >
+                {t('editor.inkModeDrawing')}
+              </button>
+              <button
+                type="button"
+                className={interactionMode === 'ink-erase' ? 'is-active' : ''}
+                onClick={() => changeInkMode('ink-erase')}
+                data-qa="mode-ink-erase"
+              >
+                {t('editor.inkModeErase')}
+              </button>
+            </div>
 
-          <div className="paper-brush-panel__paper">
-            <span>
-              {paperToolMode === 'brush'
-                ? t('editor.paperBrushSelected')
-                : t('editor.paperEraserTarget')}
-            </span>
-            <strong>
-              {paperToolMode === 'brush'
-                ? selectedTitle || t('editor.paperPreviewLoading')
-                : t('editor.paperEraserTopVisible')}
-            </strong>
-            <small className={paperToolMode === 'brush' && paperReady ? 'is-ready' : ''}>
-              {paperToolMode === 'eraser'
-                ? t('editor.paperEraserGestureLock')
-                : paperAssetError || paperTextureStatus === 'error'
-                  ? t('editor.paperPreviewError')
-                  : paperReady
-                    ? t('editor.paperBrushReady')
-                    : t('editor.paperPreviewLoading')}
-            </small>
+            {interactionMode !== 'ink-erase' ? (
+              <>
+                <div className="ink-tool-mode" role="group" aria-label={t('editor.inkToolLabel')}>
+                  <button
+                    type="button"
+                    className={inkTool === 'pen' ? 'is-active' : ''}
+                    onClick={() => { setInkTool('pen'); if (inkOpacity < 0.8) setInkOpacity(1); }}
+                  >
+                    {t('editor.inkToolPen')}
+                  </button>
+                  <button
+                    type="button"
+                    className={inkTool === 'marker' ? 'is-active' : ''}
+                    onClick={() => { setInkTool('marker'); if (inkOpacity > 0.7) setInkOpacity(0.45); }}
+                  >
+                    {t('editor.inkToolMarker')}
+                  </button>
+                </div>
+
+                <label className="ink-panel__color">
+                  <span>{t('editor.inkColor')}</span>
+                  <input
+                    type="color"
+                    value={inkColor}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => setInkColor(event.target.value)}
+                    aria-label={t('editor.inkColor')}
+                  />
+                </label>
+
+                <label className="ink-panel__range">
+                  <span>
+                    {t('editor.inkSize')} <strong>{currentInkSize}</strong>
+                  </span>
+                  <input
+                    type="range"
+                    min={interactionMode === 'drawing' ? MIN_DRAWING_SIZE : MIN_HANDWRITING_SIZE}
+                    max={interactionMode === 'drawing' ? MAX_DRAWING_SIZE : MAX_HANDWRITING_SIZE}
+                    step={1}
+                    value={currentInkSize}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                      const value = Number(event.target.value);
+                      if (interactionMode === 'drawing') setDrawingSize(value);
+                      else setHandwritingSize(value);
+                    }}
+                  />
+                </label>
+
+                <label className="ink-panel__range">
+                  <span>
+                    {t('editor.inkOpacity')} <strong>{Math.round(inkOpacity * 100)}%</strong>
+                  </span>
+                  <input
+                    type="range"
+                    min={0.2}
+                    max={1}
+                    step={0.05}
+                    value={inkOpacity}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => setInkOpacity(Number(event.target.value))}
+                  />
+                </label>
+              </>
+            ) : (
+              <label className="ink-panel__range ink-panel__eraser-size">
+                <span>
+                  {t('editor.inkEraserSize')} <strong>{inkEraserSize}</strong>
+                </span>
+                <input
+                  type="range"
+                  min={MIN_INK_ERASER_SIZE}
+                  max={MAX_INK_ERASER_SIZE}
+                  step={4}
+                  value={inkEraserSize}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setInkEraserSize(Number(event.target.value))}
+                />
+              </label>
+            )}
+
+            <div className="ink-panel__status">
+              {t('editor.inkStatus', { strokes: inkElementCount, paths: inkPathCount })}
+            </div>
           </div>
-
-          {paperPack ? (
-            <select
-              value={selectedManifestUrl ?? ''}
-              disabled={interactionMode !== 'paper' || paperToolMode === 'eraser' || !persistenceReady}
-              onChange={(event: ChangeEvent<HTMLSelectElement>) => {
-                cancelActiveInput();
-                setSelectedManifestUrl(event.target.value);
-              }}
-              aria-label={t('editor.paperPreviewSelect')}
-              data-qa="paper-select"
-            >
-              <optgroup label={t('editor.paperTypePattern')}>
-                {groupedPapers.pattern.map((paper) => (
-                  <option key={paper.paperVersionId} value={paper.manifest}>
-                    {paper.title[locale] ?? paper.title.en}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label={t('editor.paperTypeFullSheet')}>
-                {groupedPapers.fullSheet.map((paper) => (
-                  <option key={paper.paperVersionId} value={paper.manifest}>
-                    {paper.title[locale] ?? paper.title.en}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          ) : null}
-
-          <label className="paper-brush-panel__size">
-            <span>
-              {paperToolMode === 'brush'
-                ? t('editor.paperBrushSize')
-                : t('editor.paperEraserSize')}{' '}
-              <strong>{activeToolSize}</strong>
-            </span>
-            <input
-              type="range"
-              min={MIN_TOOL_SIZE}
-              max={MAX_TOOL_SIZE}
-              step={10}
-              value={activeToolSize}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                const value = Number(event.target.value);
-                if (paperToolMode === 'brush') setBrushSize(value);
-                else setEraserSize(value);
-              }}
-            />
-          </label>
-
-          <div className="paper-brush-panel__actions">
-            <button
-              type="button"
-              disabled={!canFillPage}
-              onClick={fillPage}
-              aria-label={t('editor.paperFillPageAria')}
-              data-qa="fill-page"
-            >
-              {t('editor.paperFillPage')}
-            </button>
-            <button
-              type="button"
-              disabled={!canReplaceTopLayer}
-              onClick={replaceTopLayer}
-              aria-label={t('editor.paperReplaceTopAria')}
-              data-qa="replace-top"
-            >
-              {t('editor.paperReplaceTop')}
-            </button>
-            <button
-              type="button"
-              className="paper-brush-panel__clear"
-              disabled={!persistenceReady || interactionMode !== 'paper' || paperLayers.length === 0}
-              onClick={clearPage}
-              data-qa="clear-page"
-            >
-              {t('editor.paperBrushClear')}
-            </button>
-          </div>
-        </div>
+        )}
 
         <div className="viewport-gesture-hint">{t(hintKey)}</div>
       </div>
@@ -1021,6 +1396,7 @@ export function EditorShell() {
           stressBusy={qaStressBusy}
           onSeedStress={seedP0QaStress}
           onSeedContent={seedP1QaPlaceholder}
+          onSeedInkStress={seedP12InkStress}
           selectedElementId={selectedElementId}
           interactionMode={interactionMode}
           onInteractionModeChange={changeInteractionMode}
@@ -1033,14 +1409,29 @@ export function EditorShell() {
       ) : null}
 
       <nav className="tool-dock" aria-label={t('editor.toolsLabel')}>
-        {tools.map((tool) => (
-          <button key={tool} type="button" disabled={tool !== 'paper'}>
-            <span className="tool-icon" aria-hidden="true">
-              {tool === 'paper' ? '▱' : tool === 'media' ? '▧' : tool === 'text' ? 'T' : '✎'}
-            </span>
-            <span>{t(`editor.tools.${tool}`)}</span>
-          </button>
-        ))}
+        {tools.map((tool) => {
+          const disabled = tool === 'media' || tool === 'text';
+          const active =
+            (tool === 'paper' && (interactionMode === 'paper' || interactionMode === 'select')) ||
+            (tool === 'draw' && (interactionMode === 'handwriting' || interactionMode === 'drawing' || interactionMode === 'ink-erase'));
+          return (
+            <button
+              key={tool}
+              type="button"
+              disabled={disabled}
+              className={active ? 'is-active' : ''}
+              onClick={() => {
+                if (tool === 'paper') changePaperToolMode(paperToolMode);
+                if (tool === 'draw') changeInkMode('handwriting');
+              }}
+            >
+              <span className="tool-icon" aria-hidden="true">
+                {tool === 'paper' ? '▱' : tool === 'media' ? '▧' : tool === 'text' ? 'T' : '✎'}
+              </span>
+              <span>{t(`editor.tools.${tool}`)}</span>
+            </button>
+          );
+        })}
       </nav>
     </section>
   );

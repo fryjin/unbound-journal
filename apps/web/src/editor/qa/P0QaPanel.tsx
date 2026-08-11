@@ -3,19 +3,20 @@ import type { P0QaCheckResult, P0QaRuntimeSnapshot, RunP0QaSelfCheckInput } from
 import { runP0QaSelfCheck } from './p0-qa';
 
 const MANUAL_CHECKS = [
-  ['gesture', 'Pinch / two-finger pan never lays, erases, or drags content'],
-  ['coordinates', 'Paper/content coordinates remain accurate after zoom + pan'],
-  ['eraser-lock', 'One paper erase gesture never crosses into the layer below'],
-  ['content-select', 'Select mode targets the topmost overlapping content element'],
-  ['content-drag', 'Dragging content previews smoothly and commits one history step'],
-  ['content-cancel', 'Starting a two-finger gesture cancels an uncommitted content drag'],
-  ['content-order', 'Front/back ordering changes hit target and rendering order together'],
-  ['reload', 'Reload restores the same paper layers and content elements'],
-  ['stress', '5+ paper layers plus content remain responsive during edit / zoom'],
+  ['gesture', 'Pinch / two-finger pan never paints, erases, or drags content'],
+  ['ink-write', 'Handwriting/drawing previews smoothly and commits one history step per gesture'],
+  ['ink-coordinates', 'Ink remains under the finger after zoom + pan'],
+  ['ink-cancel', 'Adding a second finger cancels an uncommitted ink stroke before viewport gesture'],
+  ['ink-erase', 'Ink eraser removes partial ink across strokes and commits one history step'],
+  ['ink-isolation', 'Ink eraser never modifies paper or non-ink content'],
+  ['ink-history', 'Undo / redo restores both ink creation and partial erasing'],
+  ['content-select', 'Select mode can hit and drag committed ink without corrupting its vectors'],
+  ['reload', 'Reload restores paper, placeholders, ink paths, styles, and transforms'],
+  ['stress', '5+ paper layers plus 20+ ink strokes remain responsive during edit / zoom'],
 ] as const;
 
 type ManualCheckId = (typeof MANUAL_CHECKS)[number][0];
-type InteractionMode = 'paper' | 'select';
+type InteractionMode = 'paper' | 'select' | 'handwriting' | 'drawing' | 'ink-erase';
 
 export interface P0QaPanelProps {
   selfCheckInput: RunP0QaSelfCheckInput;
@@ -23,6 +24,7 @@ export interface P0QaPanelProps {
   stressBusy: boolean;
   onSeedStress: () => Promise<void>;
   onSeedContent: () => void;
+  onSeedInkStress: () => void;
   selectedElementId: string | null;
   interactionMode: InteractionMode;
   onInteractionModeChange: (mode: InteractionMode) => void;
@@ -46,6 +48,7 @@ function formatSnapshot(snapshot: P0QaRuntimeSnapshot): string[] {
     `Paper layers: ${snapshot.layerCount} (${snapshot.renderedLayerCount} renderable)`,
     `Mask strokes: ${snapshot.strokeCount}`,
     `Content elements: ${snapshot.elementCount}`,
+    `Ink: ${snapshot.inkElementCount} strokes / ${snapshot.inkPathCount} retained paths`,
     `Interaction: ${snapshot.interactionMode}`,
     `Selected: ${snapshot.selectedElementId ?? 'none'}`,
     `History: ${snapshot.undoCount} undo / ${snapshot.redoCount} redo`,
@@ -62,6 +65,7 @@ export function P0QaPanel({
   stressBusy,
   onSeedStress,
   onSeedContent,
+  onSeedInkStress,
   selectedElementId,
   interactionMode,
   onInteractionModeChange,
@@ -97,7 +101,7 @@ export function P0QaPanel({
   const copyReport = async () => {
     if (!snapshot) return;
     const lines = [
-      'Unbound Journal — P1.1 QA Report',
+      'Unbound Journal — P1.2 QA Report',
       `Generated: ${new Date().toISOString()}`,
       '',
       ...formatSnapshot(snapshot),
@@ -131,11 +135,11 @@ export function P0QaPanel({
   }
 
   return (
-    <aside className="p0-qa-panel" data-qa="panel" aria-label="P1.1 QA harness">
+    <aside className="p0-qa-panel" data-qa="panel" aria-label="P1.2 QA harness">
       <div className="p0-qa-panel__header">
         <div>
-          <strong>P1.1 QA</strong>
-          <span>unified document / content foundation</span>
+          <strong>P1.2 QA</strong>
+          <span>vector ink / gesture isolation / erase</span>
         </div>
         <button type="button" onClick={() => setExpanded(false)} aria-label="Collapse QA panel">
           ×
@@ -154,13 +158,14 @@ export function P0QaPanel({
         >
           {stressBusy ? 'Seeding…' : '+5 paper layers'}
         </button>
+        <button type="button" onClick={onSeedInkStress} data-qa="seed-ink">+20 ink strokes</button>
         <button type="button" onClick={onSeedContent} data-qa="seed-content">+ placeholder</button>
         <button
           type="button"
-          onClick={() => onInteractionModeChange(interactionMode === 'paper' ? 'select' : 'paper')}
+          onClick={() => onInteractionModeChange(interactionMode === 'select' ? 'paper' : 'select')}
           data-qa="interaction-mode"
         >
-          {interactionMode === 'paper' ? 'Select mode' : 'Paper mode'}
+          {interactionMode === 'select' ? 'Paper mode' : 'Select mode'}
         </button>
         <button type="button" disabled={!selectedElementId} onClick={onRotateSelected}>Rotate +15°</button>
         <button type="button" disabled={!selectedElementId} onClick={onScaleSelected}>Scale +10%</button>
@@ -177,6 +182,7 @@ export function P0QaPanel({
           <div><dt>Viewport</dt><dd>{Math.round(snapshot.viewportSize.width)}×{Math.round(snapshot.viewportSize.height)} · DPR {snapshot.devicePixelRatio.toFixed(2)}</dd></div>
           <div><dt>Touch</dt><dd>{snapshot.maxTouchPoints}</dd></div>
           <div><dt>Document</dt><dd>v{snapshot.schemaVersion} · {snapshot.layerCount} paper · {snapshot.elementCount} content</dd></div>
+          <div><dt>Ink</dt><dd>{snapshot.inkElementCount} strokes · {snapshot.inkPathCount} paths</dd></div>
           <div><dt>History</dt><dd>{snapshot.undoCount} undo · {snapshot.redoCount} redo</dd></div>
           <div><dt>Mode</dt><dd>{snapshot.interactionMode} · {snapshot.selectedElementId ? 'selected' : 'none'}</dd></div>
           <div><dt>Storage</dt><dd>{snapshot.persistenceStatus}</dd></div>
@@ -213,7 +219,7 @@ export function P0QaPanel({
       </fieldset>
 
       <p className="p0-qa-panel__note">
-        QA-only UI. Open with <code>?qa=1</code>. Placeholder elements are development fixtures for the shared Content Stack only.
+        QA-only UI. Open with <code>?qa=1</code>. Ink remains vector document data; active previews are renderer-only.
       </p>
     </aside>
   );

@@ -3,8 +3,8 @@
 ## Current
 
 - Repository: `fryjin/unbound-journal`
-- Milestone: `P1.1 — Unified PageDocument + Content Stack Foundation`
-- State: implementation ready for upload / CI / deployed QA
+- Milestone: `P1.2 — Ink Engine`
+- State: implementation ready for upload / CI / deployed device QA
 - Driver: ChatGPT
 - Complex engineering handoff: Codex when trigger conditions are met
 - Static preview: `https://unbound-journal.pages.dev/`
@@ -26,13 +26,11 @@ Completed:
 - P0.8 Persistence / Autosave
 - P0.9 Mobile QA / P0 Acceptance
 
-Evidence is recorded in `docs/P0.9_ACCEPTANCE_REPORT.md`.
-
-The prior Android report used an embedded Chromium WebView (`wv`). Standalone Android Chrome remains a low-risk browser-label coverage item and must be included no later than P1 final acceptance.
+Evidence: `docs/P0.9_ACCEPTANCE_REPORT.md`.
 
 ## P1.0
 
-P1.0 planning / scope freeze is complete locally and included in the P1.1 patch because the P1.0-only planning patch was not uploaded to GitHub before P1.1 began.
+P1 planning / scope freeze: COMPLETE.
 
 Authoritative planning:
 
@@ -40,34 +38,54 @@ Authoritative planning:
 - `docs/P1_CONTENT_MODEL_SPEC.md`
 - `docs/EXECUTION_ROADMAP.md`
 
-## P1.1 implementation
+## P1.1
+
+**P1.1 Unified PageDocument + Content Stack Foundation: ACCEPTED.**
+
+Confirmed before P1.2 began:
+
+- GitHub Actions `Current validation`: PASS
+- PageDocument V2 / P0 migration: PASS
+- Content Add / Select / Drag / Reorder: PASS
+- one drag = one History operation: PASS
+- Paper + Content coexistence: PASS
+- IndexedDB save/reload: PASS
+- mobile second-finger cancellation: PASS
+- requested Desktop / iPhone / Android P1.1 device flow: user-confirmed PASS
+
+Evidence: `docs/P1.1_ACCEPTANCE_REPORT.md`.
+
+## P1.2 implementation
 
 Implemented in the current patch:
 
-- new `@unbound-journal/document-model` package
-- `PageDocumentV2` containing `paperLayers[]` + `elements[]`
-- strict V2 decode plus deterministic P0 V1 migration
-- existing P0 IndexedDB key retained; migrated document autosaves back as V2
-- editor History state upgraded from `PaperLayer[]` to complete `PageDocument`
-- accepted Paper Commands lifted into unified document history without rewriting Paper Engine
-- renderer-independent `ContentElement` / `ElementTransform` foundation
-- renderer-independent rotated/scaled placeholder hit testing
-- generic Add / Remove / Transform / Reorder content commands
-- `ContentStack` rendered above all Paper rendering
-- imperative renderer-only content drag preview; commit only at pointer end
-- explicit QA Select mode and selected-element session state
-- second-finger cancellation path shared with existing viewport gesture router
-- P1.1 QA harness extensions for V2 round-trip, P0 migration, content fixtures and ordering
-- current-milestone CI command (`qa:current`)
+- real `InkElement` added to the renderer-independent ContentElement union
+- new `@unbound-journal/ink-engine` package
+- one completed Ink gesture = one InkElement
+- local vector paths relative to the shared ElementTransform origin
+- input densification for bounded eraser precision
+- Handwriting and Drawing as distinct UI modes using the same engine
+- Pen / Marker, color, width, opacity controls
+- dedicated Ink Erase mode, independent from Paper Eraser semantics
+- partial vector erasing across multiple InkElements
+- erased strokes preserve disjoint `paths[]` under the same element id/z-order
+- incremental renderer-only eraser preview to avoid recomputing the complete gesture on every move
+- renderer-only active drawing preview
+- second-finger cancellation integrated with the existing PageViewport gesture router
+- generic reversible Content replacement command used for one-gesture Ink erase History
+- Select-mode hit testing/drag compatibility for committed Ink
+- IndexedDB persistence through the existing PageDocument V2 contract
+- P1.2 QA Ink counts, vector erase automatic check, and `+20 ink strokes` stress fixture
+- localized Ink controls for English / Japanese / Korean / Traditional Chinese
+- `qa:current` extended with P1.2 contract validation
 
-## P1.1 validation completed locally
+## Validation completed locally
 
-- core/document/storage strict TypeScript: PASS
-- ContentStack structural TypeScript: PASS
-- EditorShell + QA structural TypeScript: PASS
-- P1.1 runtime model assertions: PASS
-- Paper Pack validation: PASS
-- full npm workspace install/build: delegated to GitHub Actions because local public npm install timed out
+- editor-core / paper-engine / document-model / ink-engine strict TypeScript: PASS
+- all repository TS/TSX syntax parse: PASS
+- Paper Pack / P0 / P1.1 / P1.2 static contract validators: PASS
+- compiled Ink runtime partial-erase assertion: PASS
+- full npm workspace install/typecheck/Vite build: authoritative gate remains GitHub Actions after upload
 
 ## Cloudflare
 
@@ -77,11 +95,11 @@ Implemented in the current patch:
 - R2: deferred
 - accounts / cloud sync: deferred
 
-No backend Cloudflare service is required for P1.1.
+No backend Cloudflare service is required for P1.2.
 
 ## Design engineering
 
-`emilkowalski/skills` is approved as a later Design Engineering Review reference, primarily from P1.6 onward. It does not override frozen interaction/data rules.
+`emilkowalski/skills` remains approved as a later Design Engineering Review reference, primarily from P1.6 onward. P1.2 prioritizes functional ink feel and gesture correctness over final visual polish.
 
 ## Next gate
 
@@ -90,6 +108,7 @@ After this patch is uploaded:
 1. verify actual GitHub `main`
 2. require GitHub Actions `Current validation` green
 3. allow Cloudflare Pages auto-deploy
-4. run `/?qa=1` P1.1 acceptance flow
-5. close blocker regressions
-6. enter `P1.2 — Ink Engine`
+4. run `/?qa=1` P1.2 Desktop / iPhone / standalone Android Chrome Ink QA
+5. close blocker defects
+6. mark P1.2 accepted
+7. enter `P1.3 — Image Element + Local Asset Storage`

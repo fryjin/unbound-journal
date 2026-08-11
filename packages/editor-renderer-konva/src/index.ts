@@ -35,3 +35,14 @@ export {
   type ContentStackHandle,
   type ContentStackProps,
 } from './ContentStack';
+
+export {
+  InkStrokePreview,
+  type InkStrokeDraft,
+  type InkStrokePreviewHandle,
+} from './InkStrokePreview';
+
+export {
+  InkEraserPreview,
+  type InkEraserPreviewHandle,
+} from './InkEraserPreview';

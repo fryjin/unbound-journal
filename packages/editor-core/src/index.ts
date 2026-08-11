@@ -3,7 +3,15 @@ export const LOGICAL_PAGE_SIZE = Object.freeze({
   height: 1400,
 });
 
-export type EditorMode = 'select' | 'paper' | 'paper-erase';
+export type EditorMode =
+  | 'select'
+  | 'paper'
+  | 'paper-erase'
+  | 'text-input'
+  | 'handwriting'
+  | 'drawing'
+  | 'ink-erase'
+  | 'crop';
 
 export {
   DEFAULT_VIEWPORT_EDGE_MARGIN,
@@ -37,10 +45,15 @@ export {
   areElementTransformsEqual,
   cloneContentElement,
   cloneElementTransform,
+  cloneInkPath,
+  cloneInkStyle,
   createDevelopmentPlaceholderElement,
   createElementTransform,
   decodeContentElement,
   decodeElementTransform,
+  distancePointToPolyline,
+  distancePointToSegment,
+  elementLocalPointToPagePoint,
   findTopContentElementAtPoint,
   isPointInsideContentElement,
   pagePointToElementLocalPoint,
@@ -50,4 +63,10 @@ export {
   type DevelopmentPlaceholderElement,
   type EditorSelectionState,
   type ElementTransform,
+  type InkElement,
+  type InkMode,
+  type InkPath,
+  type InkPoint,
+  type InkStyle,
+  type InkTool,
 } from './content';

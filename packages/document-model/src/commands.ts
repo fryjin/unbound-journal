@@ -148,6 +148,24 @@ function moveElementToIndex(
   return replaceElements(document, elements);
 }
 
+
+export function createReplaceContentElementsCommand(
+  id: string,
+  previousElements: readonly ContentElement[],
+  nextElements: readonly ContentElement[],
+  kind = 'content.replace-elements',
+): PageDocumentCommand {
+  const before = previousElements.map(cloneContentElement);
+  const after = nextElements.map(cloneContentElement);
+
+  return {
+    id,
+    kind,
+    apply: (document) => replaceElements(document, after.map(cloneContentElement)),
+    revert: (document) => replaceElements(document, before.map(cloneContentElement)),
+  };
+}
+
 export function createReorderContentElementCommand(
   id: string,
   elementId: string,

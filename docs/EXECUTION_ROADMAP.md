@@ -38,7 +38,7 @@ Deliverables:
 
 No large feature implementation belongs in P1.0.
 
-## P1.1 — Unified PageDocument + Content Stack Foundation — IMPLEMENTATION READY
+## P1.1 — Unified PageDocument + Content Stack Foundation — COMPLETE
 
 Goal:
 
@@ -60,7 +60,7 @@ Must include:
 
 A development-only placeholder element is acceptable for validating selection/transform before real content types exist.
 
-## P1.2 — Ink Engine
+## P1.2 — Ink Engine — IMPLEMENTATION READY
 
 Goal:
 

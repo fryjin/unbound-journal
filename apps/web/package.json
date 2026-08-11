@@ -23,7 +23,8 @@
     "react-dom": "^19.2.8",
     "react-i18next": "^17.0.10",
     "react-konva": "^19.2.4",
-    "@unbound-journal/storage": "0.0.0"
+    "@unbound-journal/storage": "0.0.0",
+    "@unbound-journal/ink-engine": "0.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

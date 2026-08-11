@@ -252,7 +252,7 @@ button {
   line-height: 1.2;
 }
 
-.tool-dock button:first-child {
+.tool-dock button.is-active {
   color: #2f2b26;
   background: #eee7db;
 }
@@ -780,4 +780,161 @@ button {
 /* P1.1: paper controls remain visible for continuity but are passive while QA Select mode owns one-finger input. */
 .paper-brush-panel.is-inactive {
   opacity: 0.72;
+}
+
+
+/* P1.2 — Ink Engine controls. Functional QA UI; final product-shell treatment is deferred to P1.6. */
+.ink-panel {
+  position: absolute;
+  z-index: 6;
+  inset: auto 12px 44px;
+  display: grid;
+  grid-template-columns: auto auto auto minmax(120px, 1fr) minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(55, 49, 42, 0.09);
+  border-radius: 14px;
+  background: rgba(255, 253, 249, 0.94);
+  box-shadow: 0 6px 22px rgba(45, 37, 26, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.ink-mode,
+.ink-tool-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid #d7d2c8;
+  border-radius: 10px;
+  background: #f3efe8;
+}
+
+.ink-mode button,
+.ink-tool-mode button {
+  min-height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  color: #71695f;
+  background: transparent;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.ink-mode button.is-active,
+.ink-tool-mode button.is-active {
+  color: #2f2b26;
+  background: #fffdf9;
+  box-shadow: 0 1px 3px rgba(45, 37, 26, 0.1);
+}
+
+.ink-panel__color,
+.ink-panel__range {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.ink-panel__color span,
+.ink-panel__range span,
+.ink-panel__status {
+  color: #766f65;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.ink-panel__range span {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+.ink-panel__range strong {
+  color: #48423a;
+  font-weight: 700;
+}
+
+.ink-panel__range input[type='range'] {
+  min-width: 0;
+  width: 100%;
+  accent-color: #6e665b;
+}
+
+.ink-panel__color input[type='color'] {
+  width: 42px;
+  height: 32px;
+  padding: 3px;
+  border: 1px solid #d7d2c8;
+  border-radius: 9px;
+  background: #fffdf9;
+}
+
+.ink-panel__status {
+  min-width: 92px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ink-panel__eraser-size {
+  grid-column: span 3;
+}
+
+@media (max-width: 720px) {
+  .ink-panel {
+    inset-inline: 8px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+
+  .ink-mode {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .ink-tool-mode {
+    justify-self: start;
+  }
+
+  .ink-panel__range {
+    grid-column: span 1;
+  }
+
+  .ink-panel__status {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+
+  .ink-panel__eraser-size {
+    grid-column: 1 / -1;
+  }
+
+  .ink-panel + .viewport-gesture-hint {
+    bottom: 178px;
+  }
+}
+
+@media (max-width: 420px) {
+  .ink-panel {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ink-mode {
+    grid-column: 1 / -1;
+  }
+
+  .ink-tool-mode,
+  .ink-panel__color {
+    align-self: end;
+  }
+
+  .ink-panel__range {
+    grid-column: 1 / -1;
+  }
+
+  .ink-panel + .viewport-gesture-hint {
+    bottom: 220px;
+  }
 }
